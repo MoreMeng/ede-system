@@ -3,7 +3,7 @@
 $host = 'localhost';
 $dbname = 'ede_system';
 $username = 'root'; // เปลี่ยนตามการตั้งค่าจริง
-$password = '';     // เปลี่ยนตามการตั้งค่าจริง
+$password = '123456';     // เปลี่ยนตามการตั้งค่าจริง
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);

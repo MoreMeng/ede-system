@@ -1,4 +1,13 @@
-<?php 
+<?php
+
+// Show all PHP errors
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
+// เริ่มจับเวลา
+$start_time = microtime(true);
+
 session_start();
 require_once 'config/db.php';
 
@@ -26,26 +35,32 @@ try {
         $stats['late']    = $pdo->query("SELECT COUNT(*) FROM documents $where_late")->fetchColumn();
 
         // 2. Recent Docs
-        $sql = "SELECT d.*, dt.type_name 
-                FROM documents d 
+        $sql = "SELECT d.*, dt.type_name
+                FROM documents d
                 LEFT JOIN document_type dt ON d.type_id = dt.type_id ";
         if (!$is_admin) { $sql .= " WHERE d.created_by = $user_id "; }
         $sql .= " ORDER BY d.created_at DESC LIMIT 10";
-        
+
         $stmt = $pdo->query($sql);
         $recent_docs = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 } catch (PDOException $e) {}
 
 function getStatusBadge($status) {
-    return match ($status) {
-        'Received' => '<span class="badge rounded-pill bg-success">สำเร็จ/ได้รับแล้ว</span>',
-        'Registered' => '<span class="badge rounded-pill bg-info text-dark">ลงทะเบียนใหม่</span>',
-        'Sent' => '<span class="badge rounded-pill bg-warning text-dark">กำลังนำส่ง</span>',
-        'Late' => '<span class="badge rounded-pill bg-danger">ล่าช้า</span>',
-        'กำลังนำส่ง' => '<span class="badge rounded-pill bg-warning text-dark">กำลังนำส่ง</span>',
-        default => '<span class="badge rounded-pill bg-secondary">' . htmlspecialchars($status) . '</span>'
-    };
+    // Use switch for compatibility with PHP versions that don't support match()
+    switch ($status) {
+        case 'Received':
+            return '<span class="badge rounded-pill bg-success">สำเร็จ/ได้รับแล้ว</span>';
+        case 'Registered':
+            return '<span class="badge rounded-pill bg-info text-dark">ลงทะเบียนใหม่</span>';
+        case 'Sent':
+        case 'กำลังนำส่ง':
+            return '<span class="badge rounded-pill bg-warning text-dark">กำลังนำส่ง</span>';
+        case 'Late':
+            return '<span class="badge rounded-pill bg-danger">ล่าช้า</span>';
+        default:
+            return '<span class="badge rounded-pill bg-secondary">' . htmlspecialchars($status) . '</span>';
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -53,19 +68,19 @@ function getStatusBadge($status) {
 <head>
     <meta charset="UTF-8">
     <title>Dashboard - EDE System</title>
-    
+
     <!-- Bootstrap & Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="assets/css/style.css" rel="stylesheet">
-    
+
     <!-- QR Code Lib -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    
+
     <style>
-        .doc-link { 
-            color: #29B6F6; font-weight: bold; text-decoration: none; 
+        .doc-link {
+            color: #29B6F6; font-weight: bold; text-decoration: none;
             background: rgba(41, 182, 246, 0.1); padding: 5px 10px; border-radius: 20px; transition: 0.2s;
         }
         .doc-link:hover { background: #29B6F6; color: white; }
@@ -78,13 +93,20 @@ function getStatusBadge($status) {
     <?php include 'includes/sidebar.php'; ?>
 
     <div class="content-wrapper">
-        <?php 
-            $page_title = "Dashboard (ภาพรวม)"; 
-            $header_class = "header-dashboard"; 
-            include 'includes/topbar.php'; 
+        <?php
+            $page_title = "Dashboard (ภาพรวม)";
+            $header_class = "header-dashboard";
+            include 'includes/topbar.php';
         ?>
 
         <div class="page-content">
+            <!-- Load Time Display -->
+            <div class="alert alert-info rounded-4 mb-4 shadow-sm" style="font-size: 0.85rem;">
+                <i class="fas fa-tachometer-alt me-2"></i>
+                <strong>เวลาโหลดหน้า:</strong>
+                <span id="loadTime">กำลังคำนวณ...</span> วินาที
+            </div>
+
             <!-- Cards สรุปยอด -->
             <h5 class="mb-4 fw-bold text-secondary">**สรุปสถานะประจำวัน** <?php echo $is_admin ? '(ทั้งหมด)' : '(เฉพาะของคุณ)'; ?></h5>
             <div class="row mb-5 g-4">
@@ -113,8 +135,8 @@ function getStatusBadge($status) {
                                 <tr>
                                     <td>
                                         <!-- ลิงก์กดดู Modal -->
-                                        <a href="javascript:void(0)" 
-                                           onclick="openDetailModal('<?php echo $doc['document_code']; ?>')" 
+                                        <a href="javascript:void(0)"
+                                           onclick="openDetailModal('<?php echo $doc['document_code']; ?>')"
                                            class="doc-link shadow-sm">
                                             <i class="fas fa-qrcode me-1"></i> <?php echo htmlspecialchars($doc['document_code']); ?>
                                         </a>
@@ -181,7 +203,7 @@ function getStatusBadge($status) {
             </div>
             <div class="modal-body p-4 bg-light">
                 <div id="modalLoading" class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
-                
+
                 <div id="modalContent" style="display:none;">
                     <div class="card border-0 shadow-sm rounded-4 mb-4">
                         <div class="card-body">
@@ -192,7 +214,7 @@ function getStatusBadge($status) {
                                     <i class="far fa-eye text-primary"></i> ถูกสแกน: <strong id="d_views" class="text-dark">0</strong> ครั้ง
                                 </span>
                             </div>
-                            
+
                             <div class="row g-3">
                                 <div class="col-md-6"><small class="text-muted d-block">เลขทะเบียน</small><strong id="d_code" class="fs-5">...</strong></div>
                                 <div class="col-md-6"><small class="text-muted d-block">สถานะปัจจุบัน</small><span id="d_status" class="badge bg-secondary">...</span></div>
@@ -214,6 +236,14 @@ function getStatusBadge($status) {
 </div>
 
 <script>
+    // คำนวณและแสดงเวลาโหลด
+    window.addEventListener('load', function() {
+        const serverTime = <?php echo ($start_time * 1000); ?>;
+        const clientLoadTime = (performance.now() - (Date.now() - serverTime * 1000)) / 1000;
+        const displayTime = (Date.now() / 1000 - <?php echo $start_time; ?>).toFixed(3);
+        document.getElementById('loadTime').textContent = displayTime;
+    });
+
     function showQRModal(docCode, docTitle) {
         document.getElementById('modalDocCode').innerText = "รหัส: " + docCode;
         document.getElementById('modalDocTitle').innerText = docTitle;
@@ -244,7 +274,7 @@ function getStatusBadge($status) {
             document.getElementById('d_date').innerText = doc.created_at;
             document.getElementById('d_sender').innerText = doc.sender_name;
             document.getElementById('d_receiver').innerText = doc.receiver_name;
-            
+
             // ใส่ตัวเลขยอดวิวลงไป
             document.getElementById('d_views').innerText = doc.view_count || 0;
 
@@ -255,7 +285,7 @@ function getStatusBadge($status) {
                     // แสดงชื่อคนทำรายการ (ถ้ามีรูปก็แสดงรูปด้วย)
                     const actor = log.actor_name_snapshot || log.fullname || 'Unknown';
                     const actorPic = log.actor_pic_snapshot ? `<img src="${log.actor_pic_snapshot}" class="rounded-circle me-1" width="20">` : '<i class="fas fa-user-circle me-1"></i>';
-                    
+
                     html += `
                         <div class="timeline-item">
                             <div class="timeline-dot ${activeClass}"></div>

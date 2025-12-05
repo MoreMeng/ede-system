@@ -18,7 +18,7 @@
         .btn-register:hover { background: #039BE5; transform: translateY(-2px); }
         .toggle-link { cursor: pointer; color: #7E57C2; font-weight: bold; text-decoration: none; }
         .toggle-link:hover { text-decoration: underline; }
-        
+
         /* Animation สำหรับสลับฟอร์ม */
         .form-section { transition: all 0.3s ease-in-out; }
         .hidden { display: none; }
@@ -27,7 +27,7 @@
 <body>
 
     <div class="login-card text-center">
-        
+
         <!-- ส่วน Logo -->
         <div class="mb-4">
             <i class="fas fa-file-signature fa-4x text-primary mb-3"></i>
@@ -41,7 +41,7 @@
             <form action="api/auth.php" method="POST">
                 <input type="text" name="username" class="form-control" placeholder="ชื่อผู้ใช้งาน" required>
                 <input type="password" name="password" class="form-control" placeholder="รหัสผ่าน" required>
-                
+
                 <button type="submit" class="btn btn-action btn-login shadow-sm mb-3">
                     เข้าสู่ระบบ <i class="fas fa-sign-in-alt ms-2"></i>
                 </button>
@@ -60,7 +60,7 @@
                 <input type="text" name="username" class="form-control" placeholder="กำหนดชื่อผู้ใช้งาน (Username)" required>
                 <input type="password" name="password" class="form-control" placeholder="กำหนดรหัสผ่าน" required>
                 <input type="password" name="confirm_password" class="form-control" placeholder="ยืนยันรหัสผ่าน" required>
-                
+
                 <button type="submit" class="btn btn-action btn-register shadow-sm mb-3">
                     ลงทะเบียน <i class="fas fa-user-plus ms-2"></i>
                 </button>
