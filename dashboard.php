@@ -7,9 +7,15 @@ ini_set('display_startup_errors', 1);
 
 // เริ่มจับเวลา
 $start_time = microtime(true);
+$time_logs = [];
 
+$time_logs['session_start'] = microtime(true);
 session_start();
+$time_logs['session_start'] = microtime(true) - $time_logs['session_start'];
+
+$time_logs['db_connect'] = microtime(true);
 require_once 'config/db.php';
+$time_logs['db_connect'] = microtime(true) - $time_logs['db_connect'];
 
 // ตรวจสอบสิทธิ์
 if (!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
@@ -24,6 +30,7 @@ $user_id = $_SESSION['user_id'];
 try {
     if (isset($pdo)) {
         // 1. Stats
+        $time_logs['stats_queries'] = microtime(true);
         $where_clause = $is_admin ? "" : "WHERE created_by = $user_id";
         $where_success = $is_admin ? "WHERE current_status = 'Received'" : "WHERE current_status = 'Received' AND created_by = $user_id";
         $where_pending = $is_admin ? "WHERE current_status IN ('Registered', 'Sent')" : "WHERE current_status IN ('Registered', 'Sent') AND created_by = $user_id";
@@ -33,8 +40,10 @@ try {
         $stats['success'] = $pdo->query("SELECT COUNT(*) FROM documents $where_success")->fetchColumn();
         $stats['pending'] = $pdo->query("SELECT COUNT(*) FROM documents $where_pending")->fetchColumn();
         $stats['late']    = $pdo->query("SELECT COUNT(*) FROM documents $where_late")->fetchColumn();
+        $time_logs['stats_queries'] = microtime(true) - $time_logs['stats_queries'];
 
         // 2. Recent Docs
+        $time_logs['recent_docs_query'] = microtime(true);
         $sql = "SELECT d.*, dt.type_name
                 FROM documents d
                 LEFT JOIN document_type dt ON d.type_id = dt.type_id ";
@@ -43,8 +52,11 @@ try {
 
         $stmt = $pdo->query($sql);
         $recent_docs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $time_logs['recent_docs_query'] = microtime(true) - $time_logs['recent_docs_query'];
     }
 } catch (PDOException $e) {}
+
+$total_time = microtime(true) - $start_time;
 
 function getStatusBadge($status) {
     // Use switch for compatibility with PHP versions that don't support match()
@@ -100,11 +112,28 @@ function getStatusBadge($status) {
         ?>
 
         <div class="page-content">
-            <!-- Load Time Display -->
+            <!-- Load Time Display with Details -->
             <div class="alert alert-info rounded-4 mb-4 shadow-sm" style="font-size: 0.85rem;">
                 <i class="fas fa-tachometer-alt me-2"></i>
                 <strong>เวลาโหลดหน้า:</strong>
                 <span id="loadTime">กำลังคำนวณ...</span> วินาที
+                <button class="btn btn-sm btn-outline-info ms-3" data-bs-toggle="collapse" data-bs-target="#timeDetails">
+                    <i class="fas fa-info-circle me-1"></i>ดูรายละเอียด
+                </button>
+            </div>
+
+            <!-- Server Timing Details -->
+            <div class="collapse mb-4" id="timeDetails">
+                <div class="card card-body rounded-4 border-0 shadow-sm" style="background: #f8f9fa; font-size: 0.8rem;">
+                    <strong class="d-block mb-2">⏱️ รายละเอียดเวลาประมวลผล (Server):</strong>
+                    <table style="width: 100%; font-family: monospace;">
+                        <tr><td>1. Session Start:</td><td style="text-align: right;"><span id="time_session"><?php echo number_format($time_logs['session_start'] * 1000, 2); ?></span> ms</td></tr>
+                        <tr><td>2. Database Connect:</td><td style="text-align: right;"><span id="time_db"><?php echo number_format($time_logs['db_connect'] * 1000, 2); ?></span> ms</td></tr>
+                        <tr><td>3. Stats Queries:</td><td style="text-align: right;"><span id="time_stats"><?php echo number_format($time_logs['stats_queries'] * 1000, 2); ?></span> ms</td></tr>
+                        <tr><td>4. Recent Docs Query:</td><td style="text-align: right;"><span id="time_recent"><?php echo number_format($time_logs['recent_docs_query'] * 1000, 2); ?></span> ms</td></tr>
+                        <tr style="border-top: 1px solid #ddd; font-weight: bold;"><td>📊 รวมเวลา Server:</td><td style="text-align: right;"><span id="time_server"><?php echo number_format($total_time * 1000, 2); ?></span> ms</td></tr>
+                    </table>
+                </div>
             </div>
 
             <!-- Cards สรุปยอด -->
@@ -236,12 +265,14 @@ function getStatusBadge($status) {
 </div>
 
 <script>
-    // คำนวณและแสดงเวลาโหลด
+    // คำนวณและแสดงเวลาโหลด (รวม Server + Client)
     window.addEventListener('load', function() {
-        const serverTime = <?php echo ($start_time * 1000); ?>;
-        const clientLoadTime = (performance.now() - (Date.now() - serverTime * 1000)) / 1000;
-        const displayTime = (Date.now() / 1000 - <?php echo $start_time; ?>).toFixed(3);
-        document.getElementById('loadTime').textContent = displayTime;
+        const navTiming = performance.getEntriesByType('navigation')[0];
+        const serverTimeMs = <?php echo number_format($total_time * 1000, 2); ?>;
+        const clientRenderTime = navTiming ? navTiming.domInteractive - navTiming.fetchStart : 0;
+        const totalLoadTime = (performance.now() / 1000).toFixed(3);
+
+        document.getElementById('loadTime').textContent = totalLoadTime;
     });
 
     function showQRModal(docCode, docTitle) {
