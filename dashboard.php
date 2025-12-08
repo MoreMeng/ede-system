@@ -1,6 +1,21 @@
-<?php 
+<?php
+
+// Show all PHP errors
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
+// เริ่มจับเวลา
+$start_time = microtime(true);
+$time_logs = [];
+
+$time_logs['session_start'] = microtime(true);
 session_start();
+$time_logs['session_start'] = microtime(true) - $time_logs['session_start'];
+
+$time_logs['db_connect'] = microtime(true);
 require_once 'config/db.php';
+$time_logs['db_connect'] = microtime(true) - $time_logs['db_connect'];
 
 // ตรวจสอบสิทธิ์
 if (!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
@@ -15,6 +30,7 @@ $user_id = $_SESSION['user_id'];
 try {
     if (isset($pdo)) {
         // 1. Stats
+        $time_logs['stats_queries'] = microtime(true);
         $where_clause = $is_admin ? "" : "WHERE created_by = $user_id";
         $where_success = $is_admin ? "WHERE current_status = 'Received'" : "WHERE current_status = 'Received' AND created_by = $user_id";
         $where_pending = $is_admin ? "WHERE current_status IN ('Registered', 'Sent')" : "WHERE current_status IN ('Registered', 'Sent') AND created_by = $user_id";
@@ -24,28 +40,39 @@ try {
         $stats['success'] = $pdo->query("SELECT COUNT(*) FROM documents $where_success")->fetchColumn();
         $stats['pending'] = $pdo->query("SELECT COUNT(*) FROM documents $where_pending")->fetchColumn();
         $stats['late']    = $pdo->query("SELECT COUNT(*) FROM documents $where_late")->fetchColumn();
+        $time_logs['stats_queries'] = microtime(true) - $time_logs['stats_queries'];
 
         // 2. Recent Docs
-        $sql = "SELECT d.*, dt.type_name 
-                FROM documents d 
+        $time_logs['recent_docs_query'] = microtime(true);
+        $sql = "SELECT d.*, dt.type_name
+                FROM documents d
                 LEFT JOIN document_type dt ON d.type_id = dt.type_id ";
         if (!$is_admin) { $sql .= " WHERE d.created_by = $user_id "; }
         $sql .= " ORDER BY d.created_at DESC LIMIT 10";
-        
+
         $stmt = $pdo->query($sql);
         $recent_docs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $time_logs['recent_docs_query'] = microtime(true) - $time_logs['recent_docs_query'];
     }
 } catch (PDOException $e) {}
 
+$total_time = microtime(true) - $start_time;
+
 function getStatusBadge($status) {
-    return match ($status) {
-        'Received' => '<span class="badge rounded-pill bg-success">สำเร็จ/ได้รับแล้ว</span>',
-        'Registered' => '<span class="badge rounded-pill bg-info text-dark">ลงทะเบียนใหม่</span>',
-        'Sent' => '<span class="badge rounded-pill bg-warning text-dark">กำลังนำส่ง</span>',
-        'Late' => '<span class="badge rounded-pill bg-danger">ล่าช้า</span>',
-        'กำลังนำส่ง' => '<span class="badge rounded-pill bg-warning text-dark">กำลังนำส่ง</span>',
-        default => '<span class="badge rounded-pill bg-secondary">' . htmlspecialchars($status) . '</span>'
-    };
+    // Use switch for compatibility with PHP versions that don't support match()
+    switch ($status) {
+        case 'Received':
+            return '<span class="badge rounded-pill bg-success">สำเร็จ/ได้รับแล้ว</span>';
+        case 'Registered':
+            return '<span class="badge rounded-pill bg-info text-dark">ลงทะเบียนใหม่</span>';
+        case 'Sent':
+        case 'กำลังนำส่ง':
+            return '<span class="badge rounded-pill bg-warning text-dark">กำลังนำส่ง</span>';
+        case 'Late':
+            return '<span class="badge rounded-pill bg-danger">ล่าช้า</span>';
+        default:
+            return '<span class="badge rounded-pill bg-secondary">' . htmlspecialchars($status) . '</span>';
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -53,19 +80,19 @@ function getStatusBadge($status) {
 <head>
     <meta charset="UTF-8">
     <title>Dashboard - EDE System</title>
-    
+
     <!-- Bootstrap & Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="assets/css/style.css" rel="stylesheet">
-    
+
     <!-- QR Code Lib -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    
+
     <style>
-        .doc-link { 
-            color: #29B6F6; font-weight: bold; text-decoration: none; 
+        .doc-link {
+            color: #29B6F6; font-weight: bold; text-decoration: none;
             background: rgba(41, 182, 246, 0.1); padding: 5px 10px; border-radius: 20px; transition: 0.2s;
         }
         .doc-link:hover { background: #29B6F6; color: white; }
@@ -78,13 +105,37 @@ function getStatusBadge($status) {
     <?php include 'includes/sidebar.php'; ?>
 
     <div class="content-wrapper">
-        <?php 
-            $page_title = "Dashboard (ภาพรวม)"; 
-            $header_class = "header-dashboard"; 
-            include 'includes/topbar.php'; 
+        <?php
+            $page_title = "Dashboard (ภาพรวม)";
+            $header_class = "header-dashboard";
+            include 'includes/topbar.php';
         ?>
 
         <div class="page-content">
+            <!-- Load Time Display with Details -->
+            <div class="alert alert-info rounded-4 mb-4 shadow-sm" style="font-size: 0.85rem;">
+                <i class="fas fa-tachometer-alt me-2"></i>
+                <strong>เวลาโหลดหน้า:</strong>
+                <span id="loadTime">กำลังคำนวณ...</span> วินาที
+                <button class="btn btn-sm btn-outline-info ms-3" data-bs-toggle="collapse" data-bs-target="#timeDetails">
+                    <i class="fas fa-info-circle me-1"></i>ดูรายละเอียด
+                </button>
+            </div>
+
+            <!-- Server Timing Details -->
+            <div class="collapse mb-4" id="timeDetails">
+                <div class="card card-body rounded-4 border-0 shadow-sm" style="background: #f8f9fa; font-size: 0.8rem;">
+                    <strong class="d-block mb-2">⏱️ รายละเอียดเวลาประมวลผล (Server):</strong>
+                    <table style="width: 100%; font-family: monospace;">
+                        <tr><td>1. Session Start:</td><td style="text-align: right;"><span id="time_session"><?php echo number_format($time_logs['session_start'] * 1000, 2); ?></span> ms</td></tr>
+                        <tr><td>2. Database Connect:</td><td style="text-align: right;"><span id="time_db"><?php echo number_format($time_logs['db_connect'] * 1000, 2); ?></span> ms</td></tr>
+                        <tr><td>3. Stats Queries:</td><td style="text-align: right;"><span id="time_stats"><?php echo number_format($time_logs['stats_queries'] * 1000, 2); ?></span> ms</td></tr>
+                        <tr><td>4. Recent Docs Query:</td><td style="text-align: right;"><span id="time_recent"><?php echo number_format($time_logs['recent_docs_query'] * 1000, 2); ?></span> ms</td></tr>
+                        <tr style="border-top: 1px solid #ddd; font-weight: bold;"><td>📊 รวมเวลา Server:</td><td style="text-align: right;"><span id="time_server"><?php echo number_format($total_time * 1000, 2); ?></span> ms</td></tr>
+                    </table>
+                </div>
+            </div>
+
             <!-- Cards สรุปยอด -->
             <h5 class="mb-4 fw-bold text-secondary">**สรุปสถานะประจำวัน** <?php echo $is_admin ? '(ทั้งหมด)' : '(เฉพาะของคุณ)'; ?></h5>
             <div class="row mb-5 g-4">
@@ -113,8 +164,8 @@ function getStatusBadge($status) {
                                 <tr>
                                     <td>
                                         <!-- ลิงก์กดดู Modal -->
-                                        <a href="javascript:void(0)" 
-                                           onclick="openDetailModal('<?php echo $doc['document_code']; ?>')" 
+                                        <a href="javascript:void(0)"
+                                           onclick="openDetailModal('<?php echo $doc['document_code']; ?>')"
                                            class="doc-link shadow-sm">
                                             <i class="fas fa-qrcode me-1"></i> <?php echo htmlspecialchars($doc['document_code']); ?>
                                         </a>
@@ -181,7 +232,7 @@ function getStatusBadge($status) {
             </div>
             <div class="modal-body p-4 bg-light">
                 <div id="modalLoading" class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
-                
+
                 <div id="modalContent" style="display:none;">
                     <div class="card border-0 shadow-sm rounded-4 mb-4">
                         <div class="card-body">
@@ -192,7 +243,7 @@ function getStatusBadge($status) {
                                     <i class="far fa-eye text-primary"></i> ถูกสแกน: <strong id="d_views" class="text-dark">0</strong> ครั้ง
                                 </span>
                             </div>
-                            
+
                             <div class="row g-3">
                                 <div class="col-md-6"><small class="text-muted d-block">เลขทะเบียน</small><strong id="d_code" class="fs-5">...</strong></div>
                                 <div class="col-md-6"><small class="text-muted d-block">สถานะปัจจุบัน</small><span id="d_status" class="badge bg-secondary">...</span></div>
@@ -214,6 +265,16 @@ function getStatusBadge($status) {
 </div>
 
 <script>
+    // คำนวณและแสดงเวลาโหลด (รวม Server + Client)
+    window.addEventListener('load', function() {
+        const navTiming = performance.getEntriesByType('navigation')[0];
+        const serverTimeMs = <?php echo number_format($total_time * 1000, 2); ?>;
+        const clientRenderTime = navTiming ? navTiming.domInteractive - navTiming.fetchStart : 0;
+        const totalLoadTime = (performance.now() / 1000).toFixed(3);
+
+        document.getElementById('loadTime').textContent = totalLoadTime;
+    });
+
     function showQRModal(docCode, docTitle) {
         document.getElementById('modalDocCode').innerText = "รหัส: " + docCode;
         document.getElementById('modalDocTitle').innerText = docTitle;
@@ -244,7 +305,7 @@ function getStatusBadge($status) {
             document.getElementById('d_date').innerText = doc.created_at;
             document.getElementById('d_sender').innerText = doc.sender_name;
             document.getElementById('d_receiver').innerText = doc.receiver_name;
-            
+
             // ใส่ตัวเลขยอดวิวลงไป
             document.getElementById('d_views').innerText = doc.view_count || 0;
 
@@ -255,7 +316,7 @@ function getStatusBadge($status) {
                     // แสดงชื่อคนทำรายการ (ถ้ามีรูปก็แสดงรูปด้วย)
                     const actor = log.actor_name_snapshot || log.fullname || 'Unknown';
                     const actorPic = log.actor_pic_snapshot ? `<img src="${log.actor_pic_snapshot}" class="rounded-circle me-1" width="20">` : '<i class="fas fa-user-circle me-1"></i>';
-                    
+
                     html += `
                         <div class="timeline-item">
                             <div class="timeline-dot ${activeClass}"></div>

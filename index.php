@@ -1,5 +1,6 @@
-<?php 
+<?php
 session_start();
+print_r($_SESSION);
 if (!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
 ?>
 <!DOCTYPE html>
@@ -69,7 +70,7 @@ if (!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
                 </div>
 
                 <div class="row g-4 justify-content-center">
-                    
+
                     <!-- 1. Dashboard -->
                     <div class="col-md-6 col-lg-4">
                         <a href="dashboard.php" class="text-decoration-none">
