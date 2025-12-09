@@ -1,0 +1,29 @@
+[
+    {
+        "id": "cat_6937864408fb8",
+        "name": "it",
+        "created_by": 1,
+        "statuses": [
+            {
+                "id": "st_693786867bfdc",
+                "name": "รับเอกสาร",
+                "color": "secondary"
+            },
+            {
+                "id": "st_69378691aa6e5",
+                "name": "ส่งต่อ",
+                "color": "info"
+            },
+            {
+                "id": "st_693786b0168ec",
+                "name": "รับตรวจสอบ",
+                "color": "warning"
+            },
+            {
+                "id": "st_693786beb22c3",
+                "name": "ได้รับแล้ว",
+                "color": "success"
+            }
+        ]
+    }
+]

@@ -56,7 +56,15 @@ if (!empty($search_query)) {
         }
     } catch (PDOException $e) {}
 }
-function getStatusColor($status) { return match ($status) { 'Received' => 'success', 'Sent' => 'warning', 'Registered' => 'info', 'Late' => 'danger', default => 'secondary' }; }
+function getStatusColor($status) {
+    switch ($status) {
+        case 'Received': return 'success';
+        case 'Sent': return 'warning';
+        case 'Registered': return 'info';
+        case 'Late': return 'danger';
+        default: return 'secondary';
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="th">

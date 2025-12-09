@@ -314,18 +314,28 @@
             }
         }
 
-        // --- จุดสำคัญ: ดึงสถานะโดยอิงจาก Creator ID ของเอกสารนั้น ---
+        // --- ส่วนที่ปรับปรุง: ดึง Status จาก JSON และจัดกลุ่ม ---
         async function openUpdateModal() {
             let statusOptions = '';
             try {
-                // ส่ง creator_id ไปให้ API แทนที่จะส่ง line_id ตัวเอง
+                // ส่ง creator_id ไปให้ API เพื่อดึง Workflow ของคนนั้น
                 const res = await fetch(`api/liff_api.php?action=get_statuses&creator_id=${currentDocCreator}`);
                 const json = await res.json();
                 
                 if(json.status === 'success' && json.data.length > 0) {
+                    // จัดกลุ่มตาม Category (ถ้ามี)
+                    let currentCategory = '';
                     json.data.forEach(s => {
+                        // ถ้าเปลี่ยนหมวดหมู่ ให้ปิด optgroup เดิม และเปิดใหม่
+                        if (s.category !== currentCategory) {
+                            if (currentCategory !== '') statusOptions += '</optgroup>';
+                            statusOptions += `<optgroup label="${s.category}">`;
+                            currentCategory = s.category;
+                        }
                         statusOptions += `<option value="${s.status_name}">${s.status_name}</option>`;
                     });
+                    if (currentCategory !== '') statusOptions += '</optgroup>';
+                    
                 } else {
                     statusOptions = '<option value="Received">ได้รับแล้ว</option><option value="Sent">ส่งต่อ</option>';
                 }

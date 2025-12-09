@@ -22,7 +22,7 @@ try {
         echo json_encode(['status' => 'success', 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
     }
 
-    // --- 2. ประวัติการสแกน (ของคนนั้น) ---
+    // --- 2. ประวัติการสแกน ---
     else if ($action === 'history') {
         $line_id = $_GET['line_id'] ?? '';
         if (empty($line_id)) throw new Exception("No Line ID");
@@ -37,25 +37,41 @@ try {
         echo json_encode(['status' => 'success', 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
     }
 
-    // --- 3. ดึงสถานะ (Updated: ตามคนสร้างเอกสาร) ---
+    // --- 3. ดึงสถานะ (ปรับปรุงใหม่: อ่านจาก JSON) ---
     else if ($action === 'get_statuses') {
-        // รับ ID ของคนสร้างเอกสาร (Creator) ที่ส่งมาจากหน้าบ้าน
         $creator_id = $_GET['creator_id'] ?? 0;
+        $jsonFile = '../data/workflow_data.json';
+        $statuses = [];
 
-        // ดึงสถานะ: เอาของส่วนกลาง (NULL) + ของคนสร้างเอกสารนี้ ($creator_id)
-        $sql = "SELECT * FROM document_statuses WHERE created_by IS NULL";
-        $params = [];
-
-        if ($creator_id > 0) {
-            $sql .= " OR created_by = ?";
-            $params[] = $creator_id;
+        if (file_exists($jsonFile)) {
+            $workflows = json_decode(file_get_contents($jsonFile), true) ?? [];
+            
+            // วนลูปหาหมวดหมู่ที่ user คนนี้สร้าง (หรือหมวดกลางถ้ามี)
+            foreach ($workflows as $wf) {
+                // กรองเฉพาะ Workflow ของ Creator คนนี้ (หรือของคนที่ ID=0/Null ถ้าเป็นระบบกลาง)
+                // หมายเหตุ: ต้องแก้ตรงนี้ให้ยืดหยุ่น ถ้า workflow ไม่ระบุ created_by ให้ถือว่าเป็นของทุกคน
+                $wfCreator = $wf['created_by'] ?? 0;
+                
+                if ($wfCreator == $creator_id || $wfCreator == 0) {
+                    foreach ($wf['statuses'] as $st) {
+                        $statuses[] = [
+                            'status_name' => $st['name'],
+                            'color' => $st['color'],
+                            'category' => $wf['name'] // เพิ่มชื่อหมวดหมู่ไปด้วย เพื่อทำ Group
+                        ];
+                    }
+                }
+            }
         }
-        
-        $sql .= " ORDER BY status_id ASC";
 
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $statuses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // ถ้าไม่มีข้อมูลเลย ให้ใส่ Default
+        if (empty($statuses)) {
+            $statuses = [
+                ['status_name' => 'Received', 'category' => 'ค่าเริ่มต้น'],
+                ['status_name' => 'Sent', 'category' => 'ค่าเริ่มต้น'],
+                ['status_name' => 'Done', 'category' => 'ค่าเริ่มต้น']
+            ];
+        }
 
         echo json_encode(['status' => 'success', 'data' => $statuses]);
     }
