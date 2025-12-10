@@ -9,18 +9,13 @@ try {
         $types = $stmt->fetchAll();
     }
 } catch (PDOException $e) {}
+
+// ตั้งค่าสำหรับ topbar
+$page_title = "ลงทะเบียน";
+$header_class = "header-register";
 ?>
-<div class="d-flex">
-    <?php include 'includes/sidebar.php'; ?>
 
-    <div class="content-wrapper">
-        <?php
-            $page_title = "ลงทะเบียน";
-            $header_class = "header-register";
-            include 'includes/topbar.php';
-        ?>
-
-        <div class="page-content">
+<div class="page-content">
             <h5 class="mb-4 fw-bold text-secondary">**ลงทะเบียนเอกสารใหม่**</h5>
 
             <form action="api/save_document.php" method="POST" class="mx-auto" style="max-width: 900px;" id="registerForm">
@@ -104,7 +99,6 @@ try {
                 </div>
             </form>
         </div>
-    </div>
 </div>
 
 <style>

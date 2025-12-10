@@ -1,33 +1,12 @@
-<div class="d-flex">
-    <?php include 'includes/sidebar.php'; ?>
+<?php
+// ตั้งค่าสำหรับ topbar
+$page_title = "เมนูหลัก (Main Menu)";
+$header_class = "header-menu";
+?>
 
-    <div class="content-wrapper">
-        <!-- Header สีเทาเรียบๆ สำหรับหน้าเมนู -->
-        <div class="top-header bg-secondary bg-gradient d-flex justify-content-between align-items-center px-4 py-3 shadow-sm">
-            <div class="d-flex align-items-center text-white">
-                <i class="fas fa-th-large fa-lg me-3"></i>
-                <h4 class="mb-0 fw-bold">เมนูหลัก (Main Menu)</h4>
-            </div>
-            <!-- Profile Dropdown -->
-            <div class="dropdown">
-                <button class="btn btn-link text-white text-decoration-none dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
-                    <div class="text-end me-3 d-none d-md-block">
-                        <div class="fw-bold"><?php echo $_SESSION['fullname']; ?></div>
-                        <small style="opacity: 0.9;"><?php echo $_SESSION['role']; ?></small>
-                    </div>
-                    <div class="bg-white text-dark rounded-circle d-flex justify-content-center align-items-center fw-bold" style="width: 40px; height: 40px;">
-                        <?php echo mb_substr($_SESSION['fullname'], 0, 1); ?>
-                    </div>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end mt-2">
-                    <li><a class="dropdown-item text-danger" href="logout.php">ออกจากระบบ</a></li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="page-content bg-light">
-            <div class="container py-4">
-                <div class="text-center mb-5">
+<div class="page-content bg-light">
+    <div class="container py-4">
+        <div class="text-center mb-5">
                     <h2 class="fw-bold text-secondary">ยินดีต้อนรับสู่ระบบ EDE</h2>
                     <p class="text-muted">กรุณาเลือกเมนูที่ต้องการใช้งาน</p>
                 </div>
@@ -102,7 +81,6 @@
                 </div>
             </div>
         </div>
-    </div>
 </div>
 
 <style>

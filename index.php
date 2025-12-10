@@ -1,22 +1,22 @@
 <?php
-session_start();
-error_reporting(E_ERROR | E_WARNING | E_PARSE);
+    session_start();
+    error_reporting( E_ERROR | E_WARNING | E_PARSE );
 
-// ตรวจสอบการ login
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit;
-}
+    // ตรวจสอบการ login
+    if ( !isset( $_SESSION['user_id'] ) ) {
+        header( "Location: login.php" );
+        exit;
+    }
     require realpath( '../dv-config.php' );
     require DEV_PATH . '/classes/db.class.v2.php';
     require DEV_PATH . '/functions/global.php';
     // require_once realpath('config/db.php');
 
     // สำหรับ dev parameter (อนุญาตเฉพาะ alphanumeric)
-    $GET_DEV = sanitizeGetParam('dev', 'alphanumeric', '', 50);
+    $GET_DEV = sanitizeGetParam( 'dev', 'alphanumeric', '', 50 );
 
-define('Q_VERSION', '1.0.0');
-define('Q_TITLE', 'EDE System - ระบบจัดการเอกสาร');
+    define( 'Q_VERSION', '1.0.0' );
+    define( 'Q_TITLE', 'EDE System - ระบบจัดการเอกสาร' );
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -43,81 +43,143 @@ define('Q_TITLE', 'EDE System - ระบบจัดการเอกสาร
 
 <body>
 
-    <?php
-    // กำหนดตัวแปรสำหรับ JavaScript ที่จะโหลด
-    $jsReq = '';
-    $jsVars = ''; // ตัวแปร JavaScript ที่ต้องการส่งจาก PHP
+    <div class="d-flex">
+        <?php include 'includes/sidebar.php'; ?>
 
-    switch ($GET_DEV) {
+        <div class="content-wrapper">
 
-        case '':
-        case 'main':
-            // หน้าเมนูหลัก
-            require  'pages/main-menu.php';
-            break;
+            <?php
+                // กำหนดตัวแปรสำหรับ JavaScript ที่จะโหลด
+                $jsReq  = '';
+                $jsVars = ''; // ตัวแปร JavaScript ที่ต้องการส่งจาก PHP
 
-        case 'dashboard':
-            // หน้า Dashboard
-            require 'pages/dashboard-page.php';
-            $jsReq = '_scripts/dashboard.js';
-            break;
+                switch ( $GET_DEV ) {
 
-        case 'register':
-            // หน้าลงทะเบียนเอกสาร
-            require 'pages/register-page.php';
-            $jsReq = '_scripts/register.js';
-            $jsVars = "const CURRENT_USER_ID = '" . ($_SESSION['user_id'] ?? '') . "';";
-            break;
+                    case '':
+                    case 'main':
+                        // หน้าเมนูหลัก
+                        $page_title = "เมนูหลัก (Main Menu)";
+                        $header_class = "header-menu";
+                        break;
 
-        case 'tracking':
-            // หน้าติดตามเอกสาร
-            require 'pages/tracking-page.php';
-            break;
+                    case 'dashboard':
+                        // หน้า Dashboard
+                        $page_title = "Dashboard (ภาพรวม)";
+                        $header_class = "header-dashboard";
+                        $jsReq = '_scripts/dashboard.js';
+                        break;
 
-        case 'report':
-            // หน้ารายงาน
-            require 'pages/report-page.php';
-            break;
+                    case 'register':
+                        // หน้าลงทะเบียนเอกสาร
+                        $page_title = "ลงทะเบียน";
+                        $header_class = "header-register";
+                        $jsReq  = '_scripts/register.js';
+                        $jsVars = "const CURRENT_USER_ID = '" . ( $_SESSION['user_id'] ?? '' ) . "';";
+                        break;
 
-        case 'settings':
-            // หน้าตั้งค่า
-            require 'pages/settings-page.php';
-            break;
+                    case 'tracking':
+                        // หน้าติดตามเอกสาร
+                        $page_title = "ติดตามเอกสาร";
+                        $header_class = "header-tracking";
+                        break;
 
-        case 'scan-history':
-            // หน้าประวัติการสแกน
-            require 'pages/scan-history-page.php';
-            break;
+                    case 'report':
+                        // หน้ารายงาน
+                        $page_title = "รายงาน";
+                        $header_class = "header-report";
+                        break;
 
-        case 'workflow-settings':
-            // หน้าจัดการสถานะ
-            require 'pages/workflow-settings-page.php';
-            break;
+                    case 'settings':
+                        // หน้าตั้งค่า
+                        $page_title = "ตั้งค่าระบบ";
+                        $header_class = "header-settings";
+                        break;
 
-        default:
-            // หน้า 404
-            require 'pages/page-not-found.php';
-            break;
-    }
+                    case 'scan-history':
+                        // หน้าประวัติการสแกน
+                        $page_title = "ประวัติการสแกน";
+                        $header_class = "header-settings";
+                        break;
 
-    ?>
+                    case 'workflow-settings':
+                        // หน้าจัดการสถานะ
+                        $page_title = "จัดการสถานะ";
+                        $header_class = "header-status_settings";
+                        break;
+
+                    default:
+                        // หน้า 404
+                        $page_title = "404 - ไม่พบหน้าที่ต้องการ";
+                        $header_class = "header-danger";
+                        break;
+                }
+
+                // แสดง topbar ก่อน page content
+                include 'includes/topbar.php';
+
+                // จากนั้นโหลด page content
+                switch ( $GET_DEV ) {
+
+                    case '':
+                    case 'main':
+                        require 'pages/main-menu.php';
+                        break;
+
+                    case 'dashboard':
+                        require 'pages/dashboard-page.php';
+                        break;
+
+                    case 'register':
+                        require 'pages/register-page.php';
+                        break;
+
+                    case 'tracking':
+                        require 'pages/tracking-page.php';
+                        break;
+
+                    case 'report':
+                        require 'pages/report-page.php';
+                        break;
+
+                    case 'settings':
+                        require 'pages/settings-page.php';
+                        break;
+
+                    case 'scan-history':
+                        require 'pages/scan-history-page.php';
+                        break;
+
+                    case 'workflow-settings':
+                        require 'pages/workflow-settings-page.php';
+                        break;
+
+                    default:
+                        require 'pages/page-not-found.php';
+                        break;
+                }
+
+            ?>
+
+        </div><!-- .content-wrapper -->
+    </div><!-- .d-flex -->
 
     <!-- Core JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- <script src="<?php echo ASSET_PATH; ?>/jquery/dist/jquery.min.js"></script> -->
+    <script src="<?php echo ASSET_PATH; ?>/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
     <!-- Global Scripts -->
     <script src="_scripts/global.js"></script>
 
     <!-- Page Specific Variables & Scripts -->
-    <?php if (!empty($jsVars)): ?>
+    <?php if ( !empty( $jsVars ) ): ?>
     <script>
         <?php echo $jsVars; ?>
     </script>
     <?php endif; ?>
 
-    <?php if (!empty($jsReq) && file_exists($jsReq)): ?>
-    <script src="<?php echo $jsReq; ?>?v=<?php echo filemtime($jsReq); ?>"></script>
+    <?php if ( !empty( $jsReq ) && file_exists( $jsReq ) ): ?>
+    <script src="<?php echo $jsReq; ?>?v=<?php echo filemtime( $jsReq ); ?>"></script>
     <?php endif; ?>
 
 </body>

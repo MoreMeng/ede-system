@@ -62,12 +62,13 @@ function getStatusColor($status) {
         default: return 'secondary';
     }
 }
+
+// ตั้งค่าสำหรับ topbar
+$page_title = "ติดตามเอกสาร";
+$header_class = "header-tracking";
 ?>
-<div class="d-flex">
-    <?php include 'includes/sidebar.php'; ?>
-    <div class="content-wrapper">
-        <?php $page_title = "ติดตามเอกสาร"; $header_class = "header-tracking"; include 'includes/topbar.php'; ?>
-        <div class="page-content">
+
+<div class="page-content">
             <h5 class="mb-4 fw-bold text-secondary text-center">**🔍 ค้นหาและติดตามเอกสาร**</h5>
 
             <?php if (!$is_admin): ?>
@@ -130,5 +131,4 @@ function getStatusColor($status) {
                 </div>
             <?php endif; ?>
         </div>
-    </div>
 </div>

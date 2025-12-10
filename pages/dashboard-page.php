@@ -61,18 +61,13 @@ function getStatusBadge($status) {
 
 // ส่งค่าเวลาไปให้ JavaScript
 $jsVars = "const SERVER_TIME_MS = " . number_format($total_time * 1000, 2) . ";";
+
+// ตั้งค่าสำหรับ topbar
+$page_title = "Dashboard (ภาพรวม)";
+$header_class = "header-dashboard";
 ?>
-<div class="d-flex">
-    <?php include 'includes/sidebar.php'; ?>
 
-    <div class="content-wrapper">
-        <?php
-            $page_title = "Dashboard (ภาพรวม)";
-            $header_class = "header-dashboard";
-            include 'includes/topbar.php';
-        ?>
-
-        <div class="page-content">
+<div class="page-content">
             <!-- Load Time Display -->
             <div class="alert alert-info rounded-4 mb-4 shadow-sm" style="font-size: 0.85rem;">
                 <i class="fas fa-tachometer-alt me-2"></i>
@@ -164,7 +159,6 @@ $jsVars = "const SERVER_TIME_MS = " . number_format($total_time * 1000, 2) . ";"
                 </table>
             </div>
         </div>
-    </div>
 </div>
 
 <!-- Modal QR Code -->
