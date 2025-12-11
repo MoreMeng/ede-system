@@ -5,6 +5,11 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
+// ตั้งค่าสำหรับ topbar
+$page_title = "Dashboard (ภาพรวม)";
+$header_class = "header-dashboard";
+include 'includes/topbar.php';
+
 // เริ่มจับเวลา
 $start_time = microtime(true);
 $time_logs = [];
@@ -105,12 +110,6 @@ function getStatusBadge($status) {
     <?php include 'includes/sidebar.php'; ?>
 
     <div class="content-wrapper">
-        <?php
-            $page_title = "Dashboard (ภาพรวม)";
-            $header_class = "header-dashboard";
-            include 'includes/topbar.php';
-        ?>
-
         <div class="page-content">
             <!-- Load Time Display with Details -->
             <div class="alert alert-info rounded-4 mb-4 shadow-sm" style="font-size: 0.85rem;">

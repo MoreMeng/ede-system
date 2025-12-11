@@ -1,5 +1,11 @@
 <?php
 // Tracking Page - สำหรับติดตามเอกสาร
+
+// ตั้งค่าสำหรับ topbar
+$page_title = "ติดตามเอกสาร";
+$header_class = "header-tracking";
+include 'includes/topbar.php';
+
 require_once 'config/db.php';
 
 $search_query = $_GET['search'] ?? '';

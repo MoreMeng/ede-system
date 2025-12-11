@@ -50,114 +50,57 @@
         <div class="content-wrapper">
 
             <?php
-                // กำหนดตัวแปรสำหรับ JavaScript ที่จะโหลด
+                // กำหนดตัวแปรสำหรับ JavaScript ที่จะโหลด และโหลด page content
                 $jsReq  = '';
-                $jsVars = ''; // ตัวแปร JavaScript ที่ต้องการส่งจาก PHP
+                $jsVars = '';
+                $pageFile = '';
 
                 switch ( $GET_DEV ) {
 
                     case '':
                     case 'main':
-                        // หน้าเมนูหลัก
-                        $page_title = "เมนูหลัก (Main Menu)";
-                        $header_class = "header-menu";
+                        $jsReq = '';
+                        $pageFile = 'pages/main-menu.php';
                         break;
 
                     case 'dashboard':
-                        // หน้า Dashboard
-                        $page_title = "Dashboard (ภาพรวม)";
-                        $header_class = "header-dashboard";
                         $jsReq = '_scripts/dashboard.js';
+                        $pageFile = 'pages/dashboard-page.php';
                         break;
 
                     case 'register':
-                        // หน้าลงทะเบียนเอกสาร
-                        $page_title = "ลงทะเบียน";
-                        $header_class = "header-register";
                         $jsReq  = '_scripts/register.js';
                         $jsVars = "const CURRENT_USER_ID = '" . ( $_SESSION['user_id'] ?? '' ) . "';";
+                        $pageFile = 'pages/register-page.php';
                         break;
 
                     case 'tracking':
-                        // หน้าติดตามเอกสาร
-                        $page_title = "ติดตามเอกสาร";
-                        $header_class = "header-tracking";
+                        $pageFile = 'pages/tracking-page.php';
                         break;
 
                     case 'report':
-                        // หน้ารายงาน
-                        $page_title = "รายงาน";
-                        $header_class = "header-report";
+                        $pageFile = 'pages/report-page.php';
                         break;
 
                     case 'settings':
-                        // หน้าตั้งค่า
-                        $page_title = "ตั้งค่าระบบ";
-                        $header_class = "header-settings";
+                        $pageFile = 'pages/settings-page.php';
                         break;
 
                     case 'scan-history':
-                        // หน้าประวัติการสแกน
-                        $page_title = "ประวัติการสแกน";
-                        $header_class = "header-settings";
+                        $pageFile = 'pages/scan-history-page.php';
                         break;
 
                     case 'workflow-settings':
-                        // หน้าจัดการสถานะ
-                        $page_title = "จัดการสถานะ";
-                        $header_class = "header-status_settings";
+                        $pageFile = 'pages/workflow-settings-page.php';
                         break;
 
                     default:
-                        // หน้า 404
-                        $page_title = "404 - ไม่พบหน้าที่ต้องการ";
-                        $header_class = "header-danger";
+                        $pageFile = 'pages/page-not-found.php';
                         break;
                 }
 
-                // แสดง topbar ก่อน page content
-                include 'includes/topbar.php';
-
-                // จากนั้นโหลด page content
-                switch ( $GET_DEV ) {
-
-                    case '':
-                    case 'main':
-                        require 'pages/main-menu.php';
-                        break;
-
-                    case 'dashboard':
-                        require 'pages/dashboard-page.php';
-                        break;
-
-                    case 'register':
-                        require 'pages/register-page.php';
-                        break;
-
-                    case 'tracking':
-                        require 'pages/tracking-page.php';
-                        break;
-
-                    case 'report':
-                        require 'pages/report-page.php';
-                        break;
-
-                    case 'settings':
-                        require 'pages/settings-page.php';
-                        break;
-
-                    case 'scan-history':
-                        require 'pages/scan-history-page.php';
-                        break;
-
-                    case 'workflow-settings':
-                        require 'pages/workflow-settings-page.php';
-                        break;
-
-                    default:
-                        require 'pages/page-not-found.php';
-                        break;
-                }
+                // โหลด page content (แต่ละ page จะตั้งค่า $page_title และ $header_class เอง)
+                require $pageFile;
 
             ?>
 
