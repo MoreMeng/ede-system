@@ -4,10 +4,10 @@
     //error_reporting( E_ERROR | E_WARNING | E_PARSE );
 
     // ตรวจสอบการ login
-    if ( !isset( $_SESSION['user_id'] ) && $_GET['dev'] != 'liffscan' ) {
-        header( "Location: login.php" );
-        exit;
-    }
+    // if ( !isset( $_SESSION['user_id'] ) && $_GET['dev'] != 'liffscan' ) {
+    //     header( "Location: login.php" );
+    //     exit;
+    // }
     require realpath( '../dv-config.php' );
     require DEV_PATH . '/classes/db.class.v2.php';
     require DEV_PATH . '/functions/global.php';
@@ -57,7 +57,7 @@
         ?>
 
 
-        <div class="content-wrapper">
+        <div class="<?php echo ( $GET_DEV === 'liffscan' ) ? 'row' : 'content-wrapper'; ?>">
 
             <?php
                 // กำหนดตัวแปรสำหรับ JavaScript ที่จะโหลด และโหลด page content

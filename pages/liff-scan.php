@@ -1,8 +1,7 @@
 
 
     <style>
-        body { font-family: 'Prompt', sans-serif; background-color: #f8f9fa; padding-bottom: 70px; }
-        
+
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%;
             background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
@@ -27,7 +26,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         #reader { width: 100%; height: 100%; }
-        
+
         .history-card, .search-card {
             background: white; border-radius: 15px; padding: 15px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 15px;
@@ -42,14 +41,14 @@
             background: white; z-index: 2000; overflow-y: auto;
             display: none; padding: 20px;
         }
-        
+
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 
     <!-- 1. หน้าสแกน -->
     <div id="tab-scan" class="page-section active">
         <h4 class="fw-bold mb-3"><i class="fas fa-qrcode text-success me-2"></i>สแกนเอกสาร</h4>
-        
+
         <div class="camera-box mb-3">
             <div id="reader"></div>
             <div id="cameraStatus" class="position-absolute top-50 start-50 translate-middle text-white text-center w-100" style="display:none; pointer-events:none;">
@@ -57,7 +56,7 @@
                 <div>กำลังประมวลผล...</div>
             </div>
         </div>
-        
+
         <div class="d-flex align-items-center bg-white p-3 rounded-4 shadow-sm">
             <img id="userImg" src="https://via.placeholder.com/50" class="rounded-circle me-3" width="50">
             <div>
@@ -93,7 +92,7 @@
             <i class="fas fa-times fa-lg"></i>
         </button>
         <h4 class="fw-bold mt-4 mb-3">📄 รายละเอียด</h4>
-        
+
         <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-light">
             <h5 id="detailTitle" class="fw-bold text-primary mb-1">...</h5>
             <small id="detailCode" class="text-muted">...</small>
