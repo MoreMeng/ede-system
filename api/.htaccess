@@ -1,0 +1,47 @@
+<IfModule mod_headers.c>
+  Header set X-UA-Compatible "IE=Edge,chrome=1"
+  # mod_headers can't match by content-type, but we don't want to send this header on *everything*...
+  <FilesMatch "\.(appcache|crx|css|eot|gif|htc|ico|jpe?g|js|m4a|m4v|manifest|mp4|oex|oga|ogg|ogv|otf|pdf|png|safariextz|svg|svgz|ttf|vcf|webm|webp|woff|xml|xpi)$">
+    Header unset X-UA-Compatible
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  <IfModule mod_negotiation.c>
+    Options -MultiViews -Indexes
+  </IfModule>
+
+  RewriteEngine On
+
+  Options +FollowSymLinks +MultiViews
+
+  Header always set Access-Control-Allow-Origin "*"
+  Header always set Access-Control-Max-Age "1000"
+  Header always set Access-Control-Allow-Headers "Accept, Accept-Encoding, Authorization, Content-Type, Client-Security-Token, Origin, X-Requested-With, X-Token-Auth"
+  Header always set Access-Control-Allow-Methods "GET, DELETE, PATCH, POST, PUT, OPTIONS"
+
+  # Handle Authorization Header
+  RewriteCond %{HTTP:Authorization} .
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+  # # Redirect Trailing Slashes If Not A Folder...
+  # RewriteCond %{REQUEST_FILENAME} !-d
+  # RewriteCond %{REQUEST_URI} (.+)/$
+  # RewriteRule ^ %1 [L,R=301]
+
+  RewriteCond %{HTTP_HOST} ^ath7.link [NC]
+  RewriteCond %{HTTPS} off
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+  # Handle Front Controller...
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+
+  # รองรับ /getdocinfo/EDE-20251210-C565A83/ => index.php?dev=getdocinfo&code=EDE-20251210-C565A83
+  RewriteRule ^([0-9a-z-]+)/([A-Z]+-[0-9]+-[A-Z0-9]+)/?$ index.php?dev=$1&code=$2 [QSA]
+  # รองรับ /api/assets-get/4/ => index.php?dev=assets-get&id=4
+  RewriteRule ^([A-Z]+-[0-9]+-[A-Z0-9]+)/?$ index.php?code=$1 [QSA]
+  # เดิม: /api/assets-import-csv/ => index.php?dev=assets-import-csv
+  RewriteRule ^([0-9a-z-]+)/?$  index.php?dev=$1 [QSA]
+
+</IfModule>

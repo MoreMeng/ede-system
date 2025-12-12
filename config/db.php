@@ -3,7 +3,7 @@
 $host     = '127.0.0.1'; // ✅ ใช้ IP แทน localhost
 $dbname   = 'ede_system';
 $username = 'root';
-$password = '123456';
+$password = '';
 
 try {
     $dsn     = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";

@@ -7,7 +7,7 @@ $action = $_GET['action'] ?? '';
 try {
     if (!isset($pdo)) throw new Exception("Database connection failed");
 
-    // --- ฟังก์ชัน 1: ค้นหาเอกสาร ---
+    // --- 1. ค้นหาเอกสาร ---
     if ($action === 'search') {
         $keyword = $_GET['keyword'] ?? '';
         if (empty($keyword)) throw new Exception("ระบุคำค้นหา");
@@ -19,12 +19,10 @@ try {
                 ORDER BY d.created_at DESC LIMIT 10";
         $stmt = $pdo->prepare($sql);
         $stmt->execute(["%$keyword%", "%$keyword%"]);
-        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        echo json_encode(['status' => 'success', 'data' => $results]);
+        echo json_encode(['status' => 'success', 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
     }
 
-    // --- ฟังก์ชัน 2: ดึงประวัติส่วนตัว (ตาม Line ID) ---
+    // --- 2. ประวัติการสแกน ---
     else if ($action === 'history') {
         $line_id = $_GET['line_id'] ?? '';
         if (empty($line_id)) throw new Exception("No Line ID");
@@ -36,28 +34,46 @@ try {
                 ORDER BY l.action_time DESC LIMIT 20";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$line_id]);
-        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        echo json_encode(['status' => 'success', 'data' => $results]);
+        echo json_encode(['status' => 'success', 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
     }
 
-    // --- ฟังก์ชัน 3: ดูรายละเอียดเอกสาร + Timeline ---
-    else if ($action === 'detail') {
-        $code = $_GET['code'] ?? '';
-        
-        // ข้อมูลเอกสาร
-        $stmt = $pdo->prepare("SELECT * FROM documents WHERE document_code = ?");
-        $stmt->execute([$code]);
-        $doc = $stmt->fetch(PDO::FETCH_ASSOC);
+    // --- 3. ดึงสถานะ (ปรับปรุงใหม่: อ่านจาก JSON) ---
+    else if ($action === 'get_statuses') {
+        $creator_id = $_GET['creator_id'] ?? 0;
+        $jsonFile = '../data/workflow_data.json';
+        $statuses = [];
 
-        if (!$doc) throw new Exception("ไม่พบเอกสาร");
+        if (file_exists($jsonFile)) {
+            $workflows = json_decode(file_get_contents($jsonFile), true) ?? [];
+            
+            // วนลูปหาหมวดหมู่ที่ user คนนี้สร้าง (หรือหมวดกลางถ้ามี)
+            foreach ($workflows as $wf) {
+                // กรองเฉพาะ Workflow ของ Creator คนนี้ (หรือของคนที่ ID=0/Null ถ้าเป็นระบบกลาง)
+                // หมายเหตุ: ต้องแก้ตรงนี้ให้ยืดหยุ่น ถ้า workflow ไม่ระบุ created_by ให้ถือว่าเป็นของทุกคน
+                $wfCreator = $wf['created_by'] ?? 0;
+                
+                if ($wfCreator == $creator_id || $wfCreator == 0) {
+                    foreach ($wf['statuses'] as $st) {
+                        $statuses[] = [
+                            'status_name' => $st['name'],
+                            'color' => $st['color'],
+                            'category' => $wf['name'] // เพิ่มชื่อหมวดหมู่ไปด้วย เพื่อทำ Group
+                        ];
+                    }
+                }
+            }
+        }
 
-        // Timeline
-        $stmt_log = $pdo->prepare("SELECT l.*, u.fullname FROM document_status_log l LEFT JOIN users u ON l.action_by = u.user_id WHERE l.document_id = ? ORDER BY l.action_time DESC");
-        $stmt_log->execute([$doc['document_id']]);
-        $logs = $stmt_log->fetchAll(PDO::FETCH_ASSOC);
+        // ถ้าไม่มีข้อมูลเลย ให้ใส่ Default
+        if (empty($statuses)) {
+            $statuses = [
+                ['status_name' => 'Received', 'category' => 'ค่าเริ่มต้น'],
+                ['status_name' => 'Sent', 'category' => 'ค่าเริ่มต้น'],
+                ['status_name' => 'Done', 'category' => 'ค่าเริ่มต้น']
+            ];
+        }
 
-        echo json_encode(['status' => 'success', 'doc' => $doc, 'logs' => $logs]);
+        echo json_encode(['status' => 'success', 'data' => $statuses]);
     }
 
 } catch (Exception $e) {

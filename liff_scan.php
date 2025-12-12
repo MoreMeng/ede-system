@@ -69,7 +69,6 @@
         
         <div class="camera-box mb-3">
             <div id="reader"></div>
-            <!-- ข้อความทับกล้อง -->
             <div id="cameraStatus" class="position-absolute top-50 start-50 translate-middle text-white text-center w-100" style="display:none; pointer-events:none;">
                 <div class="spinner-border text-light mb-2"></div>
                 <div>กำลังประมวลผล...</div>
@@ -145,34 +144,36 @@
     </div>
 
     <script>
-        const MY_LIFF_ID = "2008591805-LlbR2M99"; 
+        const MY_LIFF_ID = "2008591805-LlbR2M99"; // LIFF ID เดิมของคุณ
         
         let html5QrCode;
-        let userProfile = {};
+        let userProfile = { userId: '', displayName: 'Guest', pictureUrl: '' };
         let currentDocCode = '';
-        
-        // --- ตัวแปรสำคัญ: ล็อกการสแกน ---
+        let currentDocCreator = 0; // เพิ่มตัวแปรเก็บ ID คนสร้าง
         let isProcessing = false; 
 
         // --- Init ---
         async function main() {
-            await liff.init({ liffId: MY_LIFF_ID });
-            if (!liff.isLoggedIn()) { liff.login(); return; }
-            
-            userProfile = await liff.getProfile();
-            document.getElementById('userImg').src = userProfile.pictureUrl;
-            document.getElementById('userName').innerText = userProfile.displayName;
-            
-            startCamera(); 
+            try {
+                await liff.init({ liffId: MY_LIFF_ID });
+                if (!liff.isLoggedIn()) { liff.login(); return; }
+                
+                userProfile = await liff.getProfile();
+                document.getElementById('userImg').src = userProfile.pictureUrl;
+                document.getElementById('userName').innerText = userProfile.displayName;
+                
+                startCamera(); 
+            } catch (err) {
+                console.error('LIFF Init Error:', err);
+                startCamera();
+            }
         }
 
         // --- Camera Logic ---
         function startCamera() {
-            if(html5QrCode) return; // ถ้าเปิดอยู่แล้วไม่ต้องเปิดซ้ำ
-            
-            // ปลดล็อก (Reset Flag) เพื่อให้เริ่มสแกนใหม่ได้
+            if(html5QrCode) return;
             isProcessing = false;
-            document.getElementById('cameraStatus').style.display = 'none'; // ซ่อนสถานะโหลด
+            document.getElementById('cameraStatus').style.display = 'none';
 
             html5QrCode = new Html5Qrcode("reader");
             html5QrCode.start(
@@ -193,22 +194,15 @@
         }
 
         function onScanSuccess(decodedText) {
-            // --- 1. เช็คด่านแรก: ถ้ากำลังประมวลผลอยู่ ห้ามทำอะไรทั้งนั้น ---
-            if (isProcessing) return; 
-            
-            // --- 2. ล็อกทันที! ห้ามเฟรมถัดไปเข้ามา ---
+            if (isProcessing) return;
             isProcessing = true;
 
-            // --- 3. หยุดกล้องทันที ---
             html5QrCode.stop().then(() => {
                 html5QrCode.clear();
                 html5QrCode = null;
             }).catch(err => console.log("Stop failed", err));
 
-            // โชว์สถานะบนจอกล้องว่า "กำลังประมวลผล" (Feedback ให้ user รู้ว่าสแกนติดแล้ว)
             document.getElementById('cameraStatus').style.display = 'block';
-
-            // --- 4. ส่งข้อมูลไป API (นับยอด +1) ---
             loadDocDetail(decodedText, true);
         }
 
@@ -219,7 +213,6 @@
             document.getElementById('tab-' + tabName).classList.add('active');
             event.currentTarget.classList.add('active');
 
-            // ถ้าออกจากหน้าสแกน ให้ปิดกล้อง
             if(tabName === 'scan') startCamera(); 
             else stopCamera();
 
@@ -267,8 +260,6 @@
 
         async function loadDocDetail(code, fromScanner = false) {
             currentDocCode = code;
-            
-            // ถ้ามาจาก Search ไม่ต้อง Loading ทับ (เพราะมีอยู่แล้ว)
             if(!fromScanner) Swal.fire({ title: 'Loading...', didOpen: () => Swal.showLoading() });
             
             try {
@@ -281,6 +272,10 @@
                 if(json.error) throw new Error(json.error);
 
                 const doc = json.doc;
+                
+                // เก็บค่า ID คนสร้าง เพื่อเอาไปใช้ตอนเปิด Modal
+                currentDocCreator = doc.created_by; 
+
                 document.getElementById('detailTitle').innerText = doc.title;
                 document.getElementById('detailCode').innerText = doc.document_code;
                 document.getElementById('detailStatus').innerHTML = `${doc.current_status} <span class="badge bg-light text-dark ms-2">👁️ ${doc.view_count}</span>`;
@@ -302,11 +297,9 @@
 
             } catch (err) {
                 Swal.fire('Error', 'ไม่พบข้อมูลเอกสาร', 'error');
-                
-                // ถ้าสแกนไม่เจอ ให้เคลียร์ Flag และเปิดกล้องใหม่
                 if(document.getElementById('tab-scan').classList.contains('active')) {
                     setTimeout(() => { 
-                        isProcessing = false; // ปลดล็อก
+                        isProcessing = false; 
                         startCamera(); 
                     }, 1500);
                 }
@@ -315,25 +308,53 @@
 
         function closeDetail() {
             document.getElementById('detailOverlay').style.display = 'none';
-            // ถ้าอยู่หน้า Scan ให้เปิดกล้องต่อ และปลดล็อก
             if(document.getElementById('tab-scan').classList.contains('active')) {
                 isProcessing = false;
                 startCamera();
             }
         }
 
+        // --- ส่วนที่ปรับปรุง: ดึง Status จาก JSON และจัดกลุ่ม ---
         async function openUpdateModal() {
+            let statusOptions = '';
+            try {
+                // ส่ง creator_id ไปให้ API เพื่อดึง Workflow ของคนนั้น
+                const res = await fetch(`api/liff_api.php?action=get_statuses&creator_id=${currentDocCreator}`);
+                const json = await res.json();
+                
+                if(json.status === 'success' && json.data.length > 0) {
+                    // จัดกลุ่มตาม Category (ถ้ามี)
+                    let currentCategory = '';
+                    json.data.forEach(s => {
+                        // ถ้าเปลี่ยนหมวดหมู่ ให้ปิด optgroup เดิม และเปิดใหม่
+                        if (s.category !== currentCategory) {
+                            if (currentCategory !== '') statusOptions += '</optgroup>';
+                            statusOptions += `<optgroup label="${s.category}">`;
+                            currentCategory = s.category;
+                        }
+                        statusOptions += `<option value="${s.status_name}">${s.status_name}</option>`;
+                    });
+                    if (currentCategory !== '') statusOptions += '</optgroup>';
+                    
+                } else {
+                    statusOptions = '<option value="Received">ได้รับแล้ว</option><option value="Sent">ส่งต่อ</option>';
+                }
+            } catch (e) {
+                console.error("Fetch Status Error:", e);
+                statusOptions = '<option value="Received">ได้รับแล้ว</option><option value="Sent">ส่งต่อ</option>';
+            }
+
             const { value: formValues } = await Swal.fire({
                 title: 'อัปเดตสถานะ',
                 html:
-                    '<select id="swal-status" class="form-select mb-3">' +
-                    '<option value="Received">ได้รับแล้ว</option>' +
-                    '<option value="Sent">ส่งต่อ</option>' +
-                    '</select>' +
-                    '<input id="swal-receiver" class="form-control" placeholder="ชื่อผู้รับคนต่อไป (ถ้าส่งต่อ)">',
+                    `<label class="form-label text-start w-100">เลือกสถานะ:</label>
+                     <select id="swal-status" class="form-select mb-3">${statusOptions}</select>` +
+                    `<label class="form-label text-start w-100">ส่งต่อให้ (ถ้ามี):</label>
+                     <input id="swal-receiver" class="form-control" placeholder="ระบุชื่อผู้รับคนถัดไป">`,
                 focusConfirm: false,
                 showCancelButton: true,
                 confirmButtonText: 'บันทึก',
+                confirmButtonColor: '#00C853',
                 preConfirm: () => {
                     return [
                         document.getElementById('swal-status').value,
@@ -344,9 +365,6 @@
 
             if (formValues) {
                 const [status, receiver] = formValues;
-                if(status === 'Sent' && !receiver) {
-                    Swal.fire('กรุณาระบุชื่อผู้รับ'); return;
-                }
                 
                 const formData = new FormData();
                 formData.append('doc_code', currentDocCode);
@@ -358,7 +376,13 @@
                 formData.append('device_info', liff.getOS());
 
                 await fetch('api/update_status.php', { method: 'POST', body: formData });
-                Swal.fire('สำเร็จ', 'บันทึกข้อมูลแล้ว', 'success').then(() => {
+                Swal.fire({
+                    title: 'สำเร็จ',
+                    text: 'บันทึกข้อมูลเรียบร้อยแล้ว',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
                     closeDetail(); 
                 });
             }
