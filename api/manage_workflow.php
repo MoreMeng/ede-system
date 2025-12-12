@@ -27,10 +27,10 @@ function getDefaultData() {
         'name' => 'สถานะพื้นฐาน (General)',
         'created_by' => 'system',
         'statuses' => [
-            ['id' => 'st_def_1', 'name' => 'ลงทะเบียนเอกสารใหม่', 'color' => 'secondary'],
-            ['id' => 'st_def_2', 'name' => 'รับเอกสาร', 'color' => 'warning'],
-            ['id' => 'st_def_3', 'name' => 'ส่งต่อ', 'color' => 'info'],
-            ['id' => 'st_def_4', 'name' => 'ได้รับแล้ว', 'color' => 'success']
+            ['id' => 'st_def_1', 'name' => 'ลงทะเบียนเอกสารใหม่', 'color' => '#6c757d'],
+            ['id' => 'st_def_2', 'name' => 'รับเอกสาร', 'color' => '#ffc107'],
+            ['id' => 'st_def_3', 'name' => 'ส่งต่อ', 'color' => '#0dcaf0o'],
+            ['id' => 'st_def_4', 'name' => 'ได้รับแล้ว', 'color' => '#198754']
         ]
     ];
 }

@@ -75,24 +75,9 @@
                 
                 <div class="mb-3">
                     <label class="form-label fw-bold">สีป้ายสถานะ</label>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <input type="radio" class="btn-check" name="st_color" id="c_sec" value="secondary" checked>
-                        <label class="btn btn-outline-secondary rounded-pill btn-sm px-3" for="c_sec">ทั่วไป (เทา)</label>
-
-                        <input type="radio" class="btn-check" name="st_color" id="c_info" value="info">
-                        <label class="btn btn-outline-info rounded-pill btn-sm px-3" for="c_info">ดำเนินการ (ฟ้า)</label>
-
-                        <input type="radio" class="btn-check" name="st_color" id="c_warn" value="warning">
-                        <label class="btn btn-outline-warning rounded-pill btn-sm px-3" for="c_warn">รอ/ระวัง (เหลือง)</label>
-
-                        <input type="radio" class="btn-check" name="st_color" id="c_prim" value="primary">
-                        <label class="btn btn-outline-primary rounded-pill btn-sm px-3" for="c_prim">ส่งต่อ (น้ำเงิน)</label>
-
-                        <input type="radio" class="btn-check" name="st_color" id="c_succ" value="success">
-                        <label class="btn btn-outline-success rounded-pill btn-sm px-3" for="c_succ">สำเร็จ (เขียว)</label>
-
-                        <input type="radio" class="btn-check" name="st_color" id="c_dang" value="danger">
-                        <label class="btn btn-outline-danger rounded-pill btn-sm px-3" for="c_dang">ยกเลิก (แดง)</label>
+                    <div class="d-flex align-items-center">
+                        <input type="color" id="st_color" class="form-control form-control-color" value="#6c757d" title="เลือกสี">
+                        <span class="ms-2 text-muted small">คลิกเพื่อเลือกสี</span>
                     </div>
                 </div>
             </div>
@@ -201,11 +186,18 @@
                     const editBtn = `<i class="fas fa-pen text-warning action-btn ms-2" title="แก้ไข" onclick="openEditStatus('${cat.id}', '${st.id}', '${st.name}', '${st.color}')"></i>`;
                     const delBtn = isSystemStatus ? '' : `<i class="fas fa-trash-alt text-danger action-btn ms-2" title="ลบ" onclick="deleteStatus('${cat.id}', '${st.id}')"></i>`;
                     
+                    let badgeHtml = '';
+                    if (st.color && st.color.startsWith('#')) {
+                        badgeHtml = `<span class="badge status-badge rounded-pill me-2" style="background-color: ${st.color}; color: #fff;">${st.name}</span>`;
+                    } else {
+                        badgeHtml = `<span class="badge bg-${st.color} status-badge rounded-pill me-2">${st.name}</span>`;
+                    }
+
                     return `
                     <div class="status-item shadow-sm" data-id="${st.id}">
                         <div class="d-flex align-items-center">
                             <div class="handle"><i class="fas fa-grip-vertical"></i></div>
-                            <span class="badge bg-${st.color} status-badge rounded-pill me-2">${st.name}</span>
+                            ${badgeHtml}
                         </div>
                         <div>
                             ${editBtn}
@@ -354,7 +346,7 @@
         document.getElementById('st_catId').value = catId;
         document.getElementById('st_id').value = '';
         document.getElementById('st_name').value = '';
-        document.getElementById('c_sec').checked = true; // Default color
+        document.getElementById('st_color').value = '#6c757d'; // Default color
         document.getElementById('stModalTitle').innerText = 'เพิ่มสถานะใหม่';
         new bootstrap.Modal(document.getElementById('statusModal')).show();
     }
@@ -364,9 +356,14 @@
         document.getElementById('st_id').value = stId;
         document.getElementById('st_name').value = name;
         
-        // เลือกสีเดิม
-        const colorInput = document.querySelector(`input[name="st_color"][value="${color}"]`);
-        if(colorInput) colorInput.checked = true;
+        // แปลงสีเดิม (Bootstrap class) เป็น Hex ถ้าจำเป็น เพื่อแสดงใน Color Picker
+        const colorMap = {
+            'secondary': '#6c757d', 'info': '#0dcaf0', 'warning': '#ffc107',
+            'primary': '#0d6efd', 'success': '#198754', 'danger': '#dc3545'
+        };
+        // ถ้าเป็น hex อยู่แล้วก็ใช้เลย ถ้าเป็น class ให้แปลง
+        const hexColor = colorMap[color] || color;
+        document.getElementById('st_color').value = hexColor;
 
         document.getElementById('stModalTitle').innerText = 'แก้ไขสถานะ';
         new bootstrap.Modal(document.getElementById('statusModal')).show();
@@ -376,7 +373,7 @@
         const catId = document.getElementById('st_catId').value;
         const stId = document.getElementById('st_id').value;
         const name = document.getElementById('st_name').value;
-        const color = document.querySelector('input[name="st_color"]:checked').value;
+        const color = document.getElementById('st_color').value;
 
         if(!name) return alert('ระบุชื่อสถานะ');
 
