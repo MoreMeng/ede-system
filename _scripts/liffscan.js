@@ -230,7 +230,7 @@
                 formData.append('picture_url', userProfile.pictureUrl);
                 formData.append('device_info', liff.getOS());
 
-                await fetch('../api/update_status.php', { method: 'POST', body: formData });
+                await fetch('api/update_status.php', { method: 'POST', body: formData });
                 Swal.fire({
                     title: 'สำเร็จ',
                     text: 'บันทึกข้อมูลเรียบร้อยแล้ว',
