@@ -1,23 +1,23 @@
 
         const MY_LIFF_ID = "2008591805-LlbR2M99"; // LIFF ID เดิมของคุณ
-        
+
         let html5QrCode;
         let userProfile = { userId: '', displayName: 'Guest', pictureUrl: '' };
         let currentDocCode = '';
         let currentDocCreator = 0; // เพิ่มตัวแปรเก็บ ID คนสร้าง
-        let isProcessing = false; 
+        let isProcessing = false;
 
         // --- Init ---
         async function main() {
             try {
                 await liff.init({ liffId: MY_LIFF_ID });
                 if (!liff.isLoggedIn()) { liff.login(); return; }
-                
+
                 userProfile = await liff.getProfile();
                 document.getElementById('userImg').src = userProfile.pictureUrl;
                 document.getElementById('userName').innerText = userProfile.displayName;
-                
-                startCamera(); 
+
+                startCamera();
             } catch (err) {
                 console.error('LIFF Init Error:', err);
                 startCamera();
@@ -32,18 +32,18 @@
 
             html5QrCode = new Html5Qrcode("reader");
             html5QrCode.start(
-                { facingMode: "environment" }, 
-                { fps: 10, qrbox: 250 }, 
-                onScanSuccess, 
+                { facingMode: "environment" },
+                { fps: 10, qrbox: 250 },
+                onScanSuccess,
                 (err) => {}
             ).catch(err => console.warn("Camera failed", err));
         }
-        
+
         function stopCamera() {
             if(html5QrCode) {
-                html5QrCode.stop().then(() => { 
+                html5QrCode.stop().then(() => {
                     html5QrCode.clear();
-                    html5QrCode = null; 
+                    html5QrCode = null;
                 }).catch(err => console.log(err));
             }
         }
@@ -68,7 +68,7 @@
             document.getElementById('tab-' + tabName).classList.add('active');
             event.currentTarget.classList.add('active');
 
-            if(tabName === 'scan') startCamera(); 
+            if(tabName === 'scan') startCamera();
             else stopCamera();
 
             if(tabName === 'history') loadHistory();
@@ -80,7 +80,7 @@
             if(!keyword) return;
             const res = await fetch(`api/liff_api.php?action=search&keyword=${keyword}`);
             const json = await res.json();
-            
+
             let html = '';
             if(json.data && json.data.length > 0) {
                 json.data.forEach(doc => {
@@ -97,7 +97,7 @@
         async function loadHistory() {
             const res = await fetch(`api/liff_api.php?action=history&line_id=${userProfile.userId}`);
             const json = await res.json();
-            
+
             let html = '';
             if(json.data && json.data.length > 0) {
                 json.data.forEach(log => {
@@ -116,20 +116,20 @@
         async function loadDocDetail(code, fromScanner = false) {
             currentDocCode = code;
             if(!fromScanner) Swal.fire({ title: 'Loading...', didOpen: () => Swal.showLoading() });
-            
+
             try {
                 let url = `${site_url}/api/getdocinfo/${code}/`;
                 if (fromScanner) url += '?action=scan';
 
                 const res = await fetch(url);
                 const json = await res.json();
-                
+
                 if(json.error) throw new Error(json.error);
 
                 const doc = json.doc;
-                
+
                 // เก็บค่า ID คนสร้าง เพื่อเอาไปใช้ตอนเปิด Modal
-                currentDocCreator = doc.created_by; 
+                currentDocCreator = doc.created_by;
 
                 document.getElementById('detailTitle').innerText = doc.title;
                 document.getElementById('detailCode').innerText = doc.document_code;
@@ -153,9 +153,9 @@
             } catch (err) {
                 Swal.fire('Error', 'ไม่พบข้อมูลเอกสาร', 'error');
                 if(document.getElementById('tab-scan').classList.contains('active')) {
-                    setTimeout(() => { 
-                        isProcessing = false; 
-                        startCamera(); 
+                    setTimeout(() => {
+                        isProcessing = false;
+                        startCamera();
                     }, 1500);
                 }
             }
@@ -176,7 +176,7 @@
                 // ส่ง creator_id ไปให้ API เพื่อดึง Workflow ของคนนั้น
                 const res = await fetch(`api/liff_api.php?action=get_statuses&creator_id=${currentDocCreator}`);
                 const json = await res.json();
-                
+
                 if(json.status === 'success' && json.data.length > 0) {
                     // จัดกลุ่มตาม Category (ถ้ามี)
                     let currentCategory = '';
@@ -190,7 +190,7 @@
                         statusOptions += `<option value="${s.status_name}">${s.status_name}</option>`;
                     });
                     if (currentCategory !== '') statusOptions += '</optgroup>';
-                    
+
                 } else {
                     statusOptions = '<option value="Received">ได้รับแล้ว</option><option value="Sent">ส่งต่อ</option>';
                 }
@@ -220,7 +220,7 @@
 
             if (formValues) {
                 const [status, receiver] = formValues;
-                
+
                 const formData = new FormData();
                 formData.append('doc_code', currentDocCode);
                 formData.append('status', status);
@@ -238,10 +238,9 @@
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
-                    closeDetail(); 
+                    closeDetail();
                 });
             }
         }
 
         main();
-    

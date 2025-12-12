@@ -57,7 +57,7 @@
         ?>
 
 
-        <div class="<?php echo ( $GET_DEV === 'liffscan' ) ? 'row' : 'content-wrapper'; ?>">
+        <div class="<?php echo ( $GET_DEV === 'liffscan' ) ? 'container-fluid' : 'content-wrapper'; ?>">
 
             <?php
                 // กำหนดตัวแปรสำหรับ JavaScript ที่จะโหลด และโหลด page content
