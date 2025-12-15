@@ -7,6 +7,7 @@
     /* Fix: บังคับให้ Modal และ Backdrop ของ Bootstrap อยู่เหนือ Overlay */
     .modal-backdrop { z-index: 1050 !important; }
     .modal { z-index: 1060 !important; }
+
 </style>
 
 <div class="d-flex justify-content-center w-100">
