@@ -1,0 +1,78 @@
+[
+    {
+        "id": "cat_default",
+        "name": "สถานะพื้นฐาน (General)",
+        "created_by": "system",
+        "statuses": [
+            {
+                "id": "st_def_1",
+                "name": "ลงทะเบียนเอกสารใหม่",
+                "color": "#6c757d"
+            },
+            {
+                "id": "st_def_2",
+                "name": "รับเอกสาร",
+                "color": "#ffc107"
+            },
+            {
+                "id": "st_def_3",
+                "name": "ส่งต่อ",
+                "color": "#0dcaf0"
+            },
+            {
+                "id": "st_def_4",
+                "name": "ได้รับแล้ว",
+                "color": "#198754"
+            }
+        ]
+    },
+    {
+        "id": "cat_6937864408fb8",
+        "name": "it",
+        "created_by": 1,
+        "statuses": [
+            {
+                "id": "st_693786b0168ec",
+                "name": "ลงทะเบียนเอกสารใหม่",
+                "color": "#919191"
+            },
+            {
+                "id": "st_693786867bfdc",
+                "name": "รับเอกสาร",
+                "color": "#ffc107"
+            },
+            {
+                "id": "st_69378691aa6e5",
+                "name": "ส่งต่อ",
+                "color": "#33bbff"
+            },
+            {
+                "id": "st_693786beb22c3",
+                "name": "ได้รับแล้ว",
+                "color": "#35f00f"
+            },
+            {
+                "id": "st_6940ba99257bf",
+                "name": "tt",
+                "color": "#ff0000"
+            }
+        ]
+    },
+    {
+        "id": "cat_6940c8b4b748e",
+        "name": "Test book",
+        "created_by": 2,
+        "statuses": [
+            {
+                "id": "st_6940c8c3358a2",
+                "name": "ลงทะเบียนเอกสาร",
+                "color": "#6c757d"
+            },
+            {
+                "id": "st_6940c8c8ecbcd",
+                "name": "จบ",
+                "color": "#659806"
+            }
+        ]
+    }
+]

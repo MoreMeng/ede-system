@@ -2,7 +2,68 @@
     $page_title   = "ลงทะเบียน";
     $header_class = "header-register";
     include 'includes/topbar.php';
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        // 1. รับค่าจากฟอร์ม
+        $title = $_POST['title'];
+        $type_id = $_POST['type_id'];
+        $reference_no = $_POST['reference_no'];
+        $sender_name = $_POST['sender_name'];
+        $receiver_name = $_POST['receiver_name'];
+        $created_by = $_POST['created_by'];
 
+        // [แก้ไข 1] รับค่า workflow_id (สำคัญมากสำหรับการระบุหมวดหมู่สถานะ)
+        // ถ้าไม่มีค่าส่งมา ให้ใช้ 'cat_default' (General)
+        $workflow_id = !empty($_POST['workflow_id']) ? $_POST['workflow_id'] : 'cat_default';
+
+        // รับค่าสถานะเริ่มต้นจาก Workflow
+        $initial_status = !empty($_POST['current_status']) ? $_POST['current_status'] : 'ลงทะเบียนใหม่';
+
+        // ------------------------------------------------------------------
+        // 2. สร้างรหัสเอกสาร (System Code)
+        // ------------------------------------------------------------------
+        $uuid_part = substr(uniqid(), -5);
+        $document_code = "EDE-" . date("Ymd") . "-" . strtoupper($uuid_part) . rand(10,99);
+
+        // 3. บันทึกลงฐานข้อมูล
+        // [แก้ไข 2] เพิ่ม workflow_id เข้าไปในคำสั่ง SQL
+        $sql = "INSERT INTO documents (document_code, title, type_id, reference_no, sender_name, receiver_name, created_by, current_status, workflow_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        $params = [
+            $document_code,
+            $title,
+            $type_id,
+            $reference_no,
+            $sender_name,
+            $receiver_name,
+            $created_by,
+            $initial_status,
+            $workflow_id // [แก้ไข 3] ส่งค่า workflow_id ไปบันทึก
+        ];
+        CON::updateDB( $params, $sql );
+
+        // หา ID ของเอกสารที่เพิ่งสร้าง
+        $sqlGetId = "SELECT document_id FROM documents WHERE document_code = ?";
+        $resId    = CON::selectArrayDB( [$document_code], $sqlGetId );
+        $document_id = $resId[0]['document_id'] ?? 0;
+
+        // 4. สร้าง Log แรก
+        $sqlLog = "INSERT INTO document_status_log (document_id, status, action_by) VALUES (?, ?, ?)";
+        CON::updateDB( [$document_id, $initial_status, $created_by], $sqlLog );
+
+        // 5. ส่งไปหน้าพิมพ์
+        header("Location: /ede-system/print/" . $document_code . "/");
+        exit;
+
+    } catch (Exception $e) {
+        if ($e->getCode() == 23000) {
+             echo "<script>alert('เกิดข้อผิดพลาดในการสร้างรหัส (ซ้ำ) กรุณาลองใหม่'); window.history.back();</script>";
+        } else {
+             echo "Error: " . $e->getMessage();
+        }
+    }
+}
     // ดึงข้อมูลประเภทเอกสาร
     $types = [];
     $sql_types = "SELECT * FROM document_type";
@@ -29,7 +90,7 @@
 <div class="page-content">
     <h5 class="mb-4 fw-bold text-secondary">**ลงทะเบียนเอกสารใหม่**</h5>
 
-    <form action="../api/save_document.php" method="POST" class="mx-auto" style="max-width: 900px;" id="registerForm">
+    <form action="" method="POST" class="mx-auto" style="max-width: 900px;" id="registerForm">
         <input type="hidden" name="created_by" value="<?php echo $_SESSION['user_id'] ?? 1; ?>">
         <input type="hidden" name="current_status" id="initialStatusInput" value="">
         <input type="hidden" name="workflow_id" id="workflowIdInput" value="">
@@ -184,4 +245,3 @@
             } );
     }
 </script>
-

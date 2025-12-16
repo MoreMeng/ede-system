@@ -142,13 +142,13 @@
 
 <script>
     // URL API ให้ชี้ไปที่ไฟล์ backend ของคุณ
-    const API_URL = '../api/manage_workflow.php';
+    const API_URL = '../api/index.php?dev=manage_workflow';
     let workflowData = [];
 
     document.addEventListener('DOMContentLoaded', loadWorkflows);
 
     function loadWorkflows() {
-        fetch(`${API_URL}?action=list`)
+        fetch(`${API_URL}&action=list`)
             .then(res => res.json())
             .then(res => {
                 if (res.success) {
@@ -283,7 +283,7 @@
     // --- API Calls ---
 
     function callApi(action, formData, onSuccess) {
-        fetch(`${API_URL}?action=${action}`, { method: 'POST', body: formData })
+        fetch(`${API_URL}&action=${action}`, { method: 'POST', body: formData })
             .then(res => res.json())
             .then(res => {
                 if (res.success) {
@@ -410,7 +410,7 @@
         fd.append('sorted_ids', JSON.stringify(sortedIdsArray));
 
         // ส่งข้อมูลไปเงียบๆ ไม่ต้อง reload หน้า
-        fetch(`${API_URL}?action=reorder_status`, { method: 'POST', body: fd })
+        fetch(`${API_URL}&action=reorder_status`, { method: 'POST', body: fd })
             .then(res => res.json())
             .then(res => {
                 if(!res.success) {
