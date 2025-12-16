@@ -7,7 +7,7 @@
     --color-tracking:  #66BB6A; /* เขียว */
     --color-report:    #EF5350; /* แดง */
     --color-settings:  #7E57C2; /* ม่วง */
-    
+
     /* --- สีใหม่สำหรับจัดการสถานะ --- */
     --color-status:    #FFD740; /* เหลืองทอง (Amber Accent) */
 }
@@ -45,9 +45,9 @@ body {
 .btn-settings  { background-color: var(--color-settings); }
 
 /* ปุ่มจัดการสถานะ (สีเหลือง ตัวหนังสือสีเข้ม) */
-.btn-status_settings { 
-    background-color: var(--color-status); 
-    color: #444; 
+.btn-status_settings {
+    background-color: var(--color-status);
+    color: #444;
 
     &:hover { color: #222; }
 }
@@ -62,7 +62,7 @@ body {
 .header-report    { background-color: var(--color-report); }
 .header-settings  { background-color: var(--color-settings); }
 
-.header-status    { 
+.header-status    {
     background-color: var(--color-status); color: #444 !important; /* Header สีเหลือง */
     .text-white { color: #444 !important; } /* ปรับสีตัวอักษรใน Header ให้เข้ม */
 }
@@ -89,8 +89,124 @@ body {
 
 /* Dropdown Profile */
 .dropdown-menu { border-radius: 15px; border: none; box-shadow: 0 5px 20px rgba(0,0,0,0.1); padding: 10px; }
-.dropdown-item { 
-    border-radius: 10px; padding: 8px 15px; transition: 0.2s; 
+.dropdown-item {
+    border-radius: 10px; padding: 8px 15px; transition: 0.2s;
 
     &:hover { background-color: #f0f2f5; color: var(--color-dashboard); transform: translateX(5px); }
+}
+
+// LIFF Scan
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: white;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-around;
+        padding: 10px 0;
+        z-index: 1000;
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+    }
+
+    .nav-item {
+        text-align: center;
+        color: #aaa;
+        flex-grow: 1;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .nav-item i {
+        font-size: 1.5rem;
+        display: block;
+        margin-bottom: 2px;
+    }
+
+    .nav-item span {
+        font-size: 0.75rem;
+    }
+
+    .nav-item.active {
+        color: #00C853;
+        font-weight: bold;
+    }
+
+    .page-section {
+        display: none;
+        padding: 20px;
+    }
+
+    .page-section.active {
+        display: block;
+        animation: fadeIn 0.3s;
+    }
+
+    /* Camera Box */
+    .camera-box {
+        position: relative;
+        background: black;
+        border-radius: 20px;
+        overflow: hidden;
+        min-height: 300px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    #reader {
+        width: 100%;
+        height: 100%;
+    }
+
+    .history-card,
+    .search-card {
+        background: white;
+        border-radius: 15px;
+        padding: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        margin-bottom: 15px;
+        border-left: 4px solid #ddd;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .history-card:active,
+    .search-card:active {
+        transform: scale(0.98);
+        background: #f0f0f0;
+    }
+
+    .history-card.status-Received {
+        border-left-color: #00C853;
+    }
+
+    .history-card.status-Sent {
+        border-left-color: #FFC107;
+    }
+
+   #detailOverlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: white; z-index: 1040 !important; overflow-y: auto;
+        
+        }
+   
+   
+/* ... โค้ดเดิมข้างบน ... */
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+
+/* Fix: บังคับให้ Modal และ Backdrop ของ Bootstrap อยู่เหนือ Overlay */
+@at-root {
+    .modal-backdrop {
+        z-index: 1050 !important;
+    }
+    
+    .modal {
+        z-index: 1060 !important;
+    }
 }

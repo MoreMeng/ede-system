@@ -39,9 +39,12 @@
 
   # รองรับ /getdocinfo/EDE-20251210-C565A83/ => index.php?dev=getdocinfo&code=EDE-20251210-C565A83
   RewriteRule ^([0-9a-z-]+)/([A-Z]+-[0-9]+-[A-Z0-9]+)/?$ index.php?dev=$1&code=$2 [QSA]
+  # รองรับ /history/Uf3c4379f5b7fbd713116ddebf55010f2
+  RewriteRule ^([a-z]+)/([A-Za-z0-9]+)/?$ index.php?dev=$1&code=$2 [QSA]
   # รองรับ /api/assets-get/4/ => index.php?dev=assets-get&id=4
   RewriteRule ^([A-Z]+-[0-9]+-[A-Z0-9]+)/?$ index.php?code=$1 [QSA]
   # เดิม: /api/assets-import-csv/ => index.php?dev=assets-import-csv
   RewriteRule ^([0-9a-z-]+)/?$  index.php?dev=$1 [QSA]
+
 
 </IfModule>

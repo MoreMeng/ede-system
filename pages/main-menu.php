@@ -78,6 +78,32 @@ $header_class = "header-menu";
                         </a>
                     </div>
 
+                    <!-- 6. ประวัติการทำงาน -->
+                    <div class="col-md-6 col-lg-4">
+                        <a href="<?php echo SITE_URL; ?>/scan-history/" class="text-decoration-none">
+                            <div class="card menu-card shadow-sm rounded-4 p-4 text-center">
+                                <div class="menu-icon-box shadow-sm" style="background: #546E7A;">
+                                    <i class="fas fa-history"></i>
+                                </div>
+                                <h4 class="fw-bold text-dark">ประวัติการสแกน</h4>
+                                <p class="text-muted small">ดูรายการที่คุณเคยสแกนหรืออัปเดต</p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- 7. จัดการสถานะ (Workflow) -->
+                    <div class="col-md-6 col-lg-4">
+                        <a href="<?php echo SITE_URL; ?>/workflow-settings/" class="text-decoration-none">
+                            <div class="card menu-card shadow-sm rounded-4 p-4 text-center">
+                                <div class="menu-icon-box shadow-sm" style="background: #ffd740;">
+                                    <i class="fas fa-project-diagram"></i>
+                                </div>
+                                <h4 class="fw-bold text-dark">จัดการสถานะ</h4>
+                                <p class="text-muted small">ตั้งค่าหมวดหมู่และลำดับสถานะงาน</p>
+                            </div>
+                        </a>
+                    </div>
+
                 </div>
             </div>
         </div>

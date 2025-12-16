@@ -37,36 +37,36 @@ try {
         echo json_encode(['status' => 'success', 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
     }
 
-    // --- 3. ดึงสถานะ (ปรับปรุงใหม่: อ่านจาก JSON) ---
+    // --- 3. ดึงสถานะ (แบบเจาะจงตาม Workflow ID) ---
     else if ($action === 'get_statuses') {
-        $creator_id = $_GET['creator_id'] ?? 0;
+        // รับค่า workflow_id ที่ส่งมาจาก JS
+        $target_id = $_GET['workflow_id'] ?? ''; 
+        
         $jsonFile = '../data/workflow_data.json';
         $statuses = [];
 
         if (file_exists($jsonFile)) {
             $workflows = json_decode(file_get_contents($jsonFile), true) ?? [];
             
-            // วนลูปหาหมวดหมู่ที่ user คนนี้สร้าง (หรือหมวดกลางถ้ามี)
             foreach ($workflows as $wf) {
-                // กรองเฉพาะ Workflow ของ Creator คนนี้ (หรือของคนที่ ID=0/Null ถ้าเป็นระบบกลาง)
-                // หมายเหตุ: ต้องแก้ตรงนี้ให้ยืดหยุ่น ถ้า workflow ไม่ระบุ created_by ให้ถือว่าเป็นของทุกคน
-                $wfCreator = $wf['created_by'] ?? 0;
-                
-                if ($wfCreator == $creator_id || $wfCreator == 0) {
+                // เปรียบเทียบ ID ให้ตรงกันเป๊ะๆ (เช่น cat_default หรือ cat_xxxx)
+                // ถ้าตรงกัน ให้ดึงเฉพาะอันนี้ แล้วสั่ง break เพื่อหยุดหาทันที
+                if ($wf['id'] === $target_id) {
                     foreach ($wf['statuses'] as $st) {
                         $statuses[] = [
                             'status_name' => $st['name'],
-                            'color' => $st['color'],
-                            'category' => $wf['name'] // เพิ่มชื่อหมวดหมู่ไปด้วย เพื่อทำ Group
+                            'color'       => $st['color'],
+                            'category'    => $wf['name']
                         ];
                     }
+                    break; // เจอแล้วหยุดเลย ไม่เอาอันอื่นมาปน
                 }
             }
         }
 
-        // ถ้าไม่มีข้อมูลเลย ให้ใส่ Default
+        // กรณีไม่เจอ (เช่น เอกสารเก่า หรือค่าว่าง) ให้ใช้ Default (General)
         if (empty($statuses)) {
-            $statuses = [
+             $statuses = [
                 ['status_name' => 'Received', 'category' => 'ค่าเริ่มต้น'],
                 ['status_name' => 'Sent', 'category' => 'ค่าเริ่มต้น'],
                 ['status_name' => 'Done', 'category' => 'ค่าเริ่มต้น']

@@ -38,10 +38,7 @@ $icon = $icon_map[$header_class] ?? 'fas fa-file';
             </div>
         </button>
         <ul class="dropdown-menu dropdown-menu-end mt-2">
-            <li><h6 class="dropdown-header">จัดการบัญชี</h6></li>
-            <li><a class="dropdown-item" href="#"><i class="fas fa-user-circle me-2 text-secondary"></i>โปรไฟล์</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger fw-bold" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>ออกจากระบบ</a></li>
+            <li><a class="dropdown-item text-danger fw-bold" href="../logout.php"><i class="fas fa-sign-out-alt me-2"></i>ออกจากระบบ</a></li>
         </ul>
     </div>
 </div>

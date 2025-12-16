@@ -60,8 +60,32 @@
 
     $total_time = microtime( true ) - $start_time;
 
+    // โหลดข้อมูลสีจาก workflow_data.json
+    $workflow_colors = [];
+    $json_file = __DIR__ . '/../data/workflow_data.json';
+    if (file_exists($json_file)) {
+        $workflows = json_decode(file_get_contents($json_file), true) ?? [];
+        foreach ($workflows as $wf) {
+            if (!empty($wf['statuses'])) {
+                foreach ($wf['statuses'] as $st) {
+                    $workflow_colors[$st['name']] = $st['color'];
+                }
+            }
+        }
+    }
+
     // ฟังก์ชันสร้าง Badge สถานะ
-    function getStatusBadge( $status ) {
+    function getStatusBadge( $status, $colors = [] ) {
+        // 1. ตรวจสอบใน JSON ก่อน
+        if (isset($colors[$status])) {
+            $c = $colors[$status];
+            if (strpos($c, '#') === 0) {
+                return '<span class="badge rounded-pill shadow-sm" style="background-color: ' . $c . '; color: #fff;">' . htmlspecialchars( $status ) . '</span>';
+            }
+            return '<span class="badge rounded-pill bg-' . $c . '">' . htmlspecialchars( $status ) . '</span>';
+        }
+
+        // 2. ค่า Default เดิม
         switch ( $status ) {
             case 'Received':
                 return '<span class="badge rounded-pill bg-success">สำเร็จ/ได้รับแล้ว</span>';
@@ -86,7 +110,7 @@
             $type_name    = $doc['type_name'] ?? '-';
             $created_at   = date( 'd/m/Y H:i', strtotime( $doc['created_at'] ?? '' ) );
             $view_count   = number_format( $doc['view_count'] ?? 0 );
-            $status_badge = getStatusBadge( $doc['current_status'] ?? '' );
+            $status_badge = getStatusBadge( $doc['current_status'] ?? '', $workflow_colors );
 
             $docsRows .= "<tr>
                 <td>

@@ -4,10 +4,10 @@
     //error_reporting( E_ERROR | E_WARNING | E_PARSE );
 
     // ตรวจสอบการ login
-    if ( !isset( $_SESSION['user_id'] ) ) {
-        header( "Location: login.php" );
-        exit;
-    }
+    // if ( !isset( $_SESSION['user_id'] ) && $_GET['dev'] != 'liffscan' ) {
+    //     header( "Location: login.php" );
+    //     exit;
+    // }
     require realpath( '../dv-config.php' );
     require DEV_PATH . '/classes/db.class.v2.php';
     require DEV_PATH . '/functions/global.php';
@@ -40,14 +40,24 @@
     <!-- <link rel="stylesheet" href="<?php echo ASSET_PATH; ?>/fonts/maledpan/maledpan.css">
     <link rel="stylesheet" href="<?php echo ASSET_PATH; ?>/fonts/chatthai/chatthai.css"> -->
     <link href="<?php echo SITE_URL;?>/css/main.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
+<script>
+  // VConsole will be exported to `window.VConsole` by default.
+  var vConsole = new window.VConsole();
+</script>
 </head>
 
 <body>
 
     <div class="d-flex">
-        <?php include 'includes/sidebar.php'; ?>
+        <?php
+        if ( $GET_DEV !== 'liffscan' ) {
+            include 'includes/sidebar.php';
+        }
+        ?>
 
-        <div class="content-wrapper">
+
+        <div class="<?php echo ( $GET_DEV === 'liffscan' ) ? 'container-fluid' : 'content-wrapper'; ?>">
 
             <?php
                 // กำหนดตัวแปรสำหรับ JavaScript ที่จะโหลด และโหลด page content
@@ -94,6 +104,11 @@
                         $pageFile = 'pages/workflow-settings-page.php';
                         break;
 
+                    case 'liffscan':
+                        $pageFile = 'pages/liff-scan.php';
+                        $jsReq = 'js/liffscan.min.js';
+                        break;
+
                     default:
                         $pageFile = 'pages/page-not-found.php';
                         break;
@@ -113,7 +128,12 @@
     </script>
     <!-- <script src="<?php echo ASSET_PATH; ?>/jquery/dist/jquery.min.js"></script> -->
     <script src="<?php echo ASSET_PATH; ?>/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<?php echo ASSET_PATH; ?>/sweetalert2/dist/sweetalert2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
     <!-- Global Scripts -->
     <script src="<?php echo SITE_URL; ?>/js/global.min.js?v=<?php echo filemtime( 'js/global.min.js' ); ?>"></script>

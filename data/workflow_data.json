@@ -1,28 +1,28 @@
 [
     {
-        "id": "cat_6937864408fb8",
-        "name": "it",
-        "created_by": 1,
+        "id": "cat_default",
+        "name": "สถานะพื้นฐาน (General)",
+        "created_by": "system",
         "statuses": [
             {
-                "id": "st_693786867bfdc",
+                "id": "st_def_1",
+                "name": "ลงทะเบียนเอกสารใหม่",
+                "color": "#6c757d"
+            },
+            {
+                "id": "st_def_2",
                 "name": "รับเอกสาร",
-                "color": "secondary"
+                "color": "#ffc107"
             },
             {
-                "id": "st_69378691aa6e5",
+                "id": "st_def_3",
                 "name": "ส่งต่อ",
-                "color": "info"
+                "color": "#0dcaf0"
             },
             {
-                "id": "st_693786b0168ec",
-                "name": "รับตรวจสอบ",
-                "color": "warning"
-            },
-            {
-                "id": "st_693786beb22c3",
+                "id": "st_def_4",
                 "name": "ได้รับแล้ว",
-                "color": "success"
+                "color": "#198754"
             }
         ]
     }
